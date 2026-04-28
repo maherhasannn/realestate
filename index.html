@@ -302,6 +302,22 @@
     border-bottom: 1px solid var(--gray-100);
   }
 
+  .dashboard-search {
+    margin-left: auto;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: var(--font);
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--black);
+    outline: none;
+    width: 160px;
+    transition: border-color 0.15s;
+  }
+  .dashboard-search:focus { border-color: var(--gray-400); }
+  .dashboard-search::placeholder { color: var(--gray-300); }
+
   .filter-pill {
     display: flex;
     align-items: center;
@@ -349,7 +365,17 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-family: var(--mono);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
+  .dashboard-header-row span:hover { color: var(--gray-500); }
+  .sort-arrow { font-size: 10px; opacity: 0.6; }
+
+  .dashboard-body { position: relative; min-height: 60px; }
 
   .dashboard-row {
     display: grid;
@@ -363,6 +389,9 @@
   }
 
   .dashboard-row:hover {
+    background: var(--green-bg);
+  }
+  .dashboard-row.expanded {
     background: var(--green-bg);
   }
 
@@ -419,6 +448,74 @@
     color: var(--gray-300);
   }
 
+  /* Row detail panel */
+  .row-detail {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease, padding 0.25s ease;
+    padding: 0 20px;
+    background: var(--green-bg);
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .row-detail.open {
+    max-height: 300px;
+    padding: 16px 20px;
+  }
+  .row-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .detail-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--gray-100);
+  }
+  .detail-card-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-300);
+    margin-bottom: 4px;
+  }
+  .detail-card-value {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .detail-card-sub {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+  .detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .detail-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .detail-btn-primary {
+    background: var(--black);
+    color: var(--white);
+    border: none;
+  }
+  .detail-btn-primary:hover { opacity: 0.8; }
+  .detail-btn-secondary {
+    background: #fff;
+    color: var(--black);
+    border: 1px solid var(--gray-200);
+  }
+  .detail-btn-secondary:hover { border-color: var(--black); }
+
   .dashboard-footer {
     display: flex;
     align-items: center;
@@ -437,7 +534,166 @@
     color: var(--green);
     cursor: pointer;
     font-weight: 500;
+    background: none;
+    border: none;
+    font-family: var(--font);
   }
+  .dashboard-footer .view-all:hover { text-decoration: underline; }
+
+  /* ——— Campaigns tab ——— */
+  .campaigns-content, .analytics-content {
+    padding: 0;
+  }
+  .campaign-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 100px 100px 80px 80px;
+    padding: 11px 20px;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--gray-50);
+    transition: background 0.12s;
+  }
+  .campaign-row:hover { background: var(--green-bg); }
+  .campaign-name { font-size: 13px; font-weight: 500; }
+  .campaign-channel { font-size: 12px; color: var(--gray-400); }
+  .campaign-status {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    text-align: center;
+  }
+  .campaign-status.active { background: var(--green-bg); color: var(--green); }
+  .campaign-status.paused { background: rgba(234,179,8,0.1); color: #ca8a04; }
+  .campaign-status.draft { background: var(--gray-50); color: var(--gray-400); }
+  .campaign-stat { font-size: 13px; font-family: var(--mono); }
+  .campaign-rate { font-size: 13px; font-family: var(--mono); font-weight: 500; }
+
+  .campaign-header-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 100px 100px 80px 80px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    gap: 12px;
+  }
+  .campaign-header-row span {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-300);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--mono);
+  }
+
+  /* ——— Analytics tab ——— */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--gray-100);
+  }
+  .analytics-card {
+    background: #fff;
+    padding: 24px 20px;
+  }
+  .analytics-card-title {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--gray-300);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .analytics-big-num {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .analytics-change {
+    font-size: 12px;
+    font-family: var(--mono);
+    margin-top: 4px;
+  }
+  .analytics-change.up { color: var(--green); }
+  .analytics-change.down { color: #ef4444; }
+
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 48px;
+    margin-top: 16px;
+  }
+  .mini-chart-bar {
+    flex: 1;
+    background: var(--green-bg-strong);
+    border-radius: 2px 2px 0 0;
+    transition: height 0.3s ease;
+    position: relative;
+  }
+  .mini-chart-bar:hover {
+    background: var(--green);
+  }
+  .mini-chart-bar-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--black);
+    color: var(--white);
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .mini-chart-bar:hover .mini-chart-bar-tooltip { display: block; }
+
+  .pipeline-funnel {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 12px;
+  }
+  .funnel-stage {
+    text-align: center;
+    padding: 8px 4px;
+    flex: 1;
+  }
+  .funnel-bar {
+    height: 6px;
+    border-radius: 3px;
+    margin: 0 auto 6px;
+    transition: width 0.3s;
+  }
+  .funnel-label {
+    font-size: 10px;
+    color: var(--gray-400);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .funnel-value {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .funnel-arrow {
+    color: var(--gray-200);
+    font-size: 14px;
+    margin: 0 2px;
+    align-self: flex-start;
+    padding-top: 10px;
+  }
+
+  /* Tab body content transitions */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
   /* ——— Stats Bar ——— */
   .stats-section {
@@ -681,6 +937,30 @@
       display: none;
     }
 
+    .dashboard-row .est { display: none; }
+    .dashboard-header-row span:nth-child(4) { display: none; }
+
+    .row-detail-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .campaign-header-row,
+    .campaign-row {
+      grid-template-columns: 2fr 100px 80px 80px;
+    }
+    .campaign-channel { display: none; }
+    .campaign-header-row span:nth-child(2) { display: none; }
+    .campaign-stat:first-of-type { display: none; }
+    .campaign-header-row span:nth-child(4) { display: none; }
+
+    .analytics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-search {
+      width: 120px;
+    }
+
     .cta-inner h2 {
       font-size: 32px;
     }
@@ -728,122 +1008,7 @@
 
   <!-- Dashboard Preview -->
   <div class="hero-dashboard">
-    <div class="dashboard">
-      <!-- Toolbar -->
-      <div class="dashboard-toolbar">
-        <div class="dashboard-tabs">
-          <button class="dashboard-tab active" data-tab="pipeline">pipeline</button>
-          <button class="dashboard-tab" data-tab="campaigns">campaigns</button>
-          <button class="dashboard-tab" data-tab="analytics">analytics</button>
-        </div>
-        <div class="dashboard-live">
-          <div class="dashboard-live-dot"></div>
-          <span class="dashboard-live-text">LIVE</span>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="dashboard-filters">
-        <button class="filter-pill active" data-filter="all">
-          All signals <span class="count">1,284</span>
-        </button>
-        <button class="filter-pill" data-filter="high">
-          90+ score <span class="count">312</span>
-        </button>
-        <button class="filter-pill" data-filter="outreach">
-          In outreach <span class="count">428</span>
-        </button>
-      </div>
-
-      <!-- Table Header -->
-      <div class="dashboard-header-row">
-        <span>Property</span>
-        <span class="col-city">Market</span>
-        <span>Score</span>
-        <span>Est. Value</span>
-        <span class="col-signal">Signal</span>
-        <span>Days</span>
-      </div>
-
-      <!-- Table Rows -->
-      <div class="dashboard-row" data-score="94">
-        <span class="address">1847 Sunset Blvd</span>
-        <span class="city">Pacific Palisades</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:94%;background:var(--green)"></div></div>
-          <span class="score-num" style="color:var(--green)">94</span>
-        </div>
-        <span class="est">$4.2M</span>
-        <span class="trigger">Divorce filing</span>
-        <span class="days">12d</span>
-      </div>
-
-      <div class="dashboard-row" data-score="91">
-        <span class="address">3201 Ocean Ave</span>
-        <span class="city">Santa Monica</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:91%;background:var(--green)"></div></div>
-          <span class="score-num" style="color:var(--green)">91</span>
-        </div>
-        <span class="est">$2.8M</span>
-        <span class="trigger">Equity withdrawal</span>
-        <span class="days">8d</span>
-      </div>
-
-      <div class="dashboard-row" data-score="89">
-        <span class="address">445 N Camden Dr</span>
-        <span class="city">Beverly Hills</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:89%;background:var(--gray-500)"></div></div>
-          <span class="score-num" style="color:var(--gray-500)">89</span>
-        </div>
-        <span class="est">$6.1M</span>
-        <span class="trigger">Property tax delinquency</span>
-        <span class="days">23d</span>
-      </div>
-
-      <div class="dashboard-row" data-score="87">
-        <span class="address">912 Wilshire Blvd</span>
-        <span class="city">Brentwood</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:87%;background:var(--gray-500)"></div></div>
-          <span class="score-num" style="color:var(--gray-500)">87</span>
-        </div>
-        <span class="est">$3.4M</span>
-        <span class="trigger">Probate filed</span>
-        <span class="days">5d</span>
-      </div>
-
-      <div class="dashboard-row" data-score="85">
-        <span class="address">2100 Laurel Canyon</span>
-        <span class="city">Hollywood Hills</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:85%;background:var(--gray-500)"></div></div>
-          <span class="score-num" style="color:var(--gray-500)">85</span>
-        </div>
-        <span class="est">$1.9M</span>
-        <span class="trigger">Pre-foreclosure</span>
-        <span class="days">31d</span>
-      </div>
-
-      <div class="dashboard-row" data-score="82">
-        <span class="address">780 Mandeville Cyn</span>
-        <span class="city">Brentwood</span>
-        <div class="score-cell">
-          <div class="score-bar"><div class="score-bar-fill" style="width:82%;background:var(--gray-400)"></div></div>
-          <span class="score-num" style="color:var(--gray-400)">82</span>
-        </div>
-        <span class="est">$5.7M</span>
-        <span class="trigger">Absentee owner + age</span>
-        <span class="days">18d</span>
-      </div>
-
-      <!-- Footer -->
-      <div class="dashboard-footer">
-        <span class="showing">Showing 6 of 1,284 high-probability sellers</span>
-        <span class="view-all">View full pipeline →</span>
-      </div>
-    </div>
+    <div class="dashboard" id="dashboard"></div>
   </div>
 </section>
 
@@ -942,68 +1107,409 @@
 </footer>
 
 <script>
-  // ——— Nav scroll effect ———
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 20);
-  }, { passive: true });
+// ——— Nav scroll effect ———
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
 
-  // ——— Dashboard tab switching ———
-  document.querySelectorAll('.dashboard-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.dashboard-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
-
-  // ——— Filter pill switching ———
-  document.querySelectorAll('.filter-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-    });
-  });
-
-  // ——— Animated counters ———
-  function animateCounters() {
-    const counters = document.querySelectorAll('.stat-value[data-target]');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const target = parseFloat(el.dataset.target);
-          const decimals = parseInt(el.dataset.decimals) || 0;
-          const prefix = el.dataset.prefix || '';
-          const suffix = el.dataset.suffix || '';
-          const duration = 2000;
-          const start = performance.now();
-
-          function tick(now) {
-            const t = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - t, 3);
-            const current = eased * target;
-
-            if (decimals > 0) {
-              el.textContent = prefix + current.toFixed(decimals) + suffix;
-            } else {
-              el.textContent = prefix + Math.round(current).toLocaleString() + suffix;
-            }
-
-            if (t < 1) {
-              requestAnimationFrame(tick);
-            }
-          }
-
-          requestAnimationFrame(tick);
-          observer.unobserve(el);
+// ——— Animated counters ———
+(function animateCounters() {
+  const counters = document.querySelectorAll('.stat-value[data-target]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.dataset.target);
+        const decimals = parseInt(el.dataset.decimals) || 0;
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const duration = 2000;
+        const start = performance.now();
+        function tick(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          const current = eased * target;
+          el.textContent = decimals > 0 ? prefix + current.toFixed(decimals) + suffix : prefix + Math.round(current).toLocaleString() + suffix;
+          if (t < 1) requestAnimationFrame(tick);
         }
-      });
-    }, { threshold: 0.3 });
+        requestAnimationFrame(tick);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.3 });
+  counters.forEach(c => observer.observe(c));
+})();
 
-    counters.forEach(c => observer.observe(c));
+// ═══════════════════════════════════════════
+// DASHBOARD ENGINE
+// ═══════════════════════════════════════════
+
+(function() {
+  // ——— Data ———
+  const sellers = [
+    { id: 1, address: '1847 Sunset Blvd', city: 'Pacific Palisades', score: 94, est: 4200000, trigger: 'Divorce filing', days: 12, inOutreach: true, agent: 'Sarah Chen', beds: 5, baths: 4, sqft: 4850, yearBuilt: 1962, lot: '0.38 acres', ownerSince: 2011, mortgageBalance: '$1.8M', lastSale: '$2.9M (2011)' },
+    { id: 2, address: '3201 Ocean Ave', city: 'Santa Monica', score: 91, est: 2800000, trigger: 'Equity withdrawal', days: 8, inOutreach: true, agent: 'Marcus Webb', beds: 3, baths: 3, sqft: 2640, yearBuilt: 1978, lot: '0.18 acres', ownerSince: 2015, mortgageBalance: '$1.2M', lastSale: '$2.1M (2015)' },
+    { id: 3, address: '445 N Camden Dr', city: 'Beverly Hills', score: 89, est: 6100000, trigger: 'Property tax delinquency', days: 23, inOutreach: false, agent: null, beds: 6, baths: 6, sqft: 6200, yearBuilt: 1955, lot: '0.52 acres', ownerSince: 2003, mortgageBalance: '$2.4M', lastSale: '$3.7M (2003)' },
+    { id: 4, address: '912 Wilshire Blvd', city: 'Brentwood', score: 87, est: 3400000, trigger: 'Probate filed', days: 5, inOutreach: true, agent: 'Sarah Chen', beds: 4, baths: 3, sqft: 3100, yearBuilt: 1971, lot: '0.25 acres', ownerSince: 1998, mortgageBalance: '$0', lastSale: '$1.1M (1998)' },
+    { id: 5, address: '2100 Laurel Canyon', city: 'Hollywood Hills', score: 85, est: 1900000, trigger: 'Pre-foreclosure', days: 31, inOutreach: false, agent: null, beds: 3, baths: 2, sqft: 1980, yearBuilt: 1985, lot: '0.14 acres', ownerSince: 2018, mortgageBalance: '$1.6M', lastSale: '$1.7M (2018)' },
+    { id: 6, address: '780 Mandeville Cyn', city: 'Brentwood', score: 82, est: 5700000, trigger: 'Absentee owner + age', days: 18, inOutreach: true, agent: 'Marcus Webb', beds: 5, baths: 5, sqft: 5400, yearBuilt: 1948, lot: '0.61 acres', ownerSince: 1992, mortgageBalance: '$0', lastSale: '$890K (1992)' },
+    { id: 7, address: '1520 Benedict Cyn', city: 'Beverly Hills', score: 96, est: 8900000, trigger: 'Listed FSBO then cancelled', days: 3, inOutreach: true, agent: 'Lisa Park', beds: 7, baths: 7, sqft: 8100, yearBuilt: 1937, lot: '1.2 acres', ownerSince: 2008, mortgageBalance: '$3.1M', lastSale: '$5.8M (2008)' },
+    { id: 8, address: '330 Palisades Dr', city: 'Pacific Palisades', score: 93, est: 3100000, trigger: 'Permit for repairs denied', days: 6, inOutreach: false, agent: null, beds: 4, baths: 3, sqft: 3200, yearBuilt: 1974, lot: '0.22 acres', ownerSince: 2014, mortgageBalance: '$1.5M', lastSale: '$2.2M (2014)' },
+    { id: 9, address: '6601 Zumirez Dr', city: 'Malibu', score: 90, est: 7200000, trigger: 'Insurance non-renewal', days: 15, inOutreach: true, agent: 'Sarah Chen', beds: 4, baths: 4, sqft: 3800, yearBuilt: 1990, lot: '0.45 acres', ownerSince: 2006, mortgageBalance: '$2.0M', lastSale: '$4.5M (2006)' },
+    { id: 10, address: '412 S Mapleton Dr', city: 'Holmby Hills', score: 88, est: 12400000, trigger: 'Estate planning transfer', days: 42, inOutreach: false, agent: null, beds: 8, baths: 9, sqft: 11200, yearBuilt: 1932, lot: '2.1 acres', ownerSince: 1985, mortgageBalance: '$0', lastSale: '$2.1M (1985)' },
+    { id: 11, address: '1044 Stradella Rd', city: 'Bel Air', score: 84, est: 4600000, trigger: 'Divorce filing', days: 27, inOutreach: true, agent: 'Marcus Webb', beds: 5, baths: 4, sqft: 4400, yearBuilt: 1966, lot: '0.34 acres', ownerSince: 2012, mortgageBalance: '$2.2M', lastSale: '$3.1M (2012)' },
+    { id: 12, address: '2834 Durand Dr', city: 'Hollywood Hills', score: 81, est: 2200000, trigger: 'Second mortgage default', days: 9, inOutreach: false, agent: null, beds: 3, baths: 2, sqft: 2100, yearBuilt: 1958, lot: '0.16 acres', ownerSince: 2019, mortgageBalance: '$1.9M', lastSale: '$2.0M (2019)' },
+    { id: 13, address: '701 N Elm Dr', city: 'Beverly Hills', score: 92, est: 5300000, trigger: 'Job relocation filing', days: 4, inOutreach: true, agent: 'Lisa Park', beds: 5, baths: 5, sqft: 4700, yearBuilt: 1941, lot: '0.41 acres', ownerSince: 2017, mortgageBalance: '$2.8M', lastSale: '$4.1M (2017)' },
+    { id: 14, address: '18 Malibu Colony Rd', city: 'Malibu', score: 79, est: 9800000, trigger: 'Absentee owner + vacancy', days: 56, inOutreach: false, agent: null, beds: 4, baths: 3, sqft: 3200, yearBuilt: 1972, lot: '0.28 acres', ownerSince: 2001, mortgageBalance: '$1.0M', lastSale: '$3.2M (2001)' },
+    { id: 15, address: '3900 Carbon Canyon', city: 'Malibu', score: 86, est: 4100000, trigger: 'Insurance claim filed', days: 11, inOutreach: true, agent: 'Sarah Chen', beds: 4, baths: 3, sqft: 3500, yearBuilt: 1988, lot: '0.38 acres', ownerSince: 2013, mortgageBalance: '$1.7M', lastSale: '$2.6M (2013)' },
+  ];
+
+  const campaigns = [
+    { name: 'Pacific Palisades Fire Zone', channel: 'SMS + Email', status: 'active', sent: 342, responses: 47, rate: 13.7, agent: 'Sarah Chen' },
+    { name: 'Beverly Hills Probate', channel: 'Direct Mail', status: 'active', sent: 128, responses: 12, rate: 9.4, agent: 'Marcus Webb' },
+    { name: 'Malibu Insurance Lapse', channel: 'Email Drip', status: 'active', sent: 215, responses: 31, rate: 14.4, agent: 'Lisa Park' },
+    { name: 'SoCal Divorce Filings Q2', channel: 'SMS + Retargeting', status: 'active', sent: 567, responses: 82, rate: 14.5, agent: 'Sarah Chen' },
+    { name: 'Brentwood Absentee Owners', channel: 'Direct Mail + Email', status: 'paused', sent: 89, responses: 6, rate: 6.7, agent: 'Marcus Webb' },
+    { name: 'Hollywood Hills Pre-Foreclosure', channel: 'SMS', status: 'active', sent: 176, responses: 23, rate: 13.1, agent: 'Lisa Park' },
+    { name: 'Bel Air Estate Transfers', channel: 'Email Drip', status: 'draft', sent: 0, responses: 0, rate: 0, agent: 'Sarah Chen' },
+    { name: 'Santa Monica Equity Tap', channel: 'Retargeting', status: 'active', sent: 410, responses: 38, rate: 9.3, agent: 'Marcus Webb' },
+  ];
+
+  const weeklyListings = [48, 52, 41, 67, 58, 73, 62, 55, 71, 84, 77, 69];
+  const weekLabels = ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'];
+
+  // ——— State ———
+  let activeTab = 'pipeline';
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let sortCol = 'score';
+  let sortDir = 'desc';
+  let expandedRow = null;
+  let pageSize = 8;
+  let currentPage = 0;
+
+  // ——— Helpers ———
+  function fmt$(v) {
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
+    if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
+    return '$' + v;
   }
 
-  animateCounters();
+  function scoreColor(s) {
+    return s >= 90 ? 'var(--green)' : s >= 85 ? 'var(--gray-500)' : 'var(--gray-400)';
+  }
+
+  function getFiltered() {
+    let list = [...sellers];
+    if (activeFilter === 'high') list = list.filter(s => s.score >= 90);
+    if (activeFilter === 'outreach') list = list.filter(s => s.inOutreach);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(s => s.address.toLowerCase().includes(q) || s.city.toLowerCase().includes(q) || s.trigger.toLowerCase().includes(q));
+    }
+    const key = sortCol;
+    list.sort((a, b) => {
+      let av = a[key], bv = b[key];
+      if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }
+
+  function filterCounts() {
+    const q = searchQuery ? searchQuery.toLowerCase() : '';
+    const match = s => !q || s.address.toLowerCase().includes(q) || s.city.toLowerCase().includes(q) || s.trigger.toLowerCase().includes(q);
+    return {
+      all: sellers.filter(match).length,
+      high: sellers.filter(s => s.score >= 90 && match(s)).length,
+      outreach: sellers.filter(s => s.inOutreach && match(s)).length,
+    };
+  }
+
+  // ——— Render ———
+  function render() {
+    const el = document.getElementById('dashboard');
+    const counts = filterCounts();
+    const filtered = getFiltered();
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    if (currentPage >= totalPages) currentPage = Math.max(0, totalPages - 1);
+    const pageItems = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+    const arrow = (col) => sortCol === col ? (sortDir === 'asc' ? '<span class="sort-arrow">▲</span>' : '<span class="sort-arrow">▼</span>') : '';
+
+    let html = '';
+
+    // Toolbar
+    html += `<div class="dashboard-toolbar">
+      <div class="dashboard-tabs">
+        ${['pipeline','campaigns','analytics'].map(t => `<button class="dashboard-tab${activeTab===t?' active':''}" data-tab="${t}">${t}</button>`).join('')}
+      </div>
+      <div class="dashboard-live">
+        <div class="dashboard-live-dot"></div>
+        <span class="dashboard-live-text">LIVE</span>
+      </div>
+    </div>`;
+
+    // ——— Pipeline Tab ———
+    if (activeTab === 'pipeline') {
+      // Filters + search
+      html += `<div class="dashboard-filters">
+        ${[{key:'all',label:'All signals'},{key:'high',label:'90+ score'},{key:'outreach',label:'In outreach'}].map(f =>
+          `<button class="filter-pill${activeFilter===f.key?' active':''}" data-filter="${f.key}">${f.label} <span class="count">${counts[f.key].toLocaleString()}</span></button>`
+        ).join('')}
+        <input class="dashboard-search" type="text" placeholder="Search properties..." value="${searchQuery}" />
+      </div>`;
+
+      // Header
+      html += `<div class="dashboard-header-row">
+        <span data-sort="address">Property ${arrow('address')}</span>
+        <span class="col-city" data-sort="city">Market ${arrow('city')}</span>
+        <span data-sort="score">Score ${arrow('score')}</span>
+        <span data-sort="est">Est. Value ${arrow('est')}</span>
+        <span class="col-signal" data-sort="trigger">Signal ${arrow('trigger')}</span>
+        <span data-sort="days">Days ${arrow('days')}</span>
+      </div>`;
+
+      // Body
+      html += `<div class="dashboard-body">`;
+      if (pageItems.length === 0) {
+        html += `<div style="padding:32px 20px;text-align:center;color:var(--gray-300);font-size:13px;">No sellers match your filters.</div>`;
+      }
+      pageItems.forEach(s => {
+        const isExpanded = expandedRow === s.id;
+        html += `<div class="dashboard-row${isExpanded?' expanded':''}" data-id="${s.id}">
+          <span class="address">${s.address}</span>
+          <span class="city">${s.city}</span>
+          <div class="score-cell">
+            <div class="score-bar"><div class="score-bar-fill" style="width:${s.score}%;background:${scoreColor(s.score)}"></div></div>
+            <span class="score-num" style="color:${scoreColor(s.score)}">${s.score}</span>
+          </div>
+          <span class="est">${fmt$(s.est)}</span>
+          <span class="trigger">${s.trigger}</span>
+          <span class="days">${s.days}d</span>
+        </div>`;
+
+        // Detail panel
+        html += `<div class="row-detail${isExpanded?' open':''}" data-detail="${s.id}">
+          <div class="row-detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-label">Property</div>
+              <div class="detail-card-value">${s.beds}bd / ${s.baths}ba · ${s.sqft.toLocaleString()} sqft</div>
+              <div class="detail-card-sub">Built ${s.yearBuilt} · Lot ${s.lot}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-label">Ownership</div>
+              <div class="detail-card-value">Since ${s.ownerSince}</div>
+              <div class="detail-card-sub">Last sale: ${s.lastSale}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-label">Mortgage</div>
+              <div class="detail-card-value">${s.mortgageBalance}</div>
+              <div class="detail-card-sub">Est. equity: ${fmt$(Math.max(0, s.est - parseInt(s.mortgageBalance.replace(/[^0-9.]/g,''))*1000000 || s.est))}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-label">Outreach</div>
+              <div class="detail-card-value" style="color:${s.inOutreach ? 'var(--green)' : 'var(--gray-400)'}">${s.inOutreach ? 'Active' : 'Not started'}</div>
+              <div class="detail-card-sub">${s.agent ? 'Agent: ' + s.agent : 'Unassigned'}</div>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="detail-btn detail-btn-primary">${s.inOutreach ? 'View campaign' : 'Start outreach'}</button>
+            <button class="detail-btn detail-btn-secondary">Property report</button>
+            <button class="detail-btn detail-btn-secondary">Owner profile</button>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+
+      // Footer with pagination
+      html += `<div class="dashboard-footer">
+        <span class="showing">Showing ${filtered.length === 0 ? 0 : currentPage * pageSize + 1}–${Math.min((currentPage+1)*pageSize, filtered.length)} of ${filtered.length} sellers</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${currentPage > 0 ? '<button class="view-all" data-page="prev">← Prev</button>' : ''}
+          ${(currentPage+1) < totalPages ? '<button class="view-all" data-page="next">Next →</button>' : ''}
+        </div>
+      </div>`;
+
+    // ——— Campaigns Tab ———
+    } else if (activeTab === 'campaigns') {
+      html += `<div class="campaign-header-row">
+        <span>Campaign</span>
+        <span>Channel</span>
+        <span>Status</span>
+        <span>Sent</span>
+        <span>Replies</span>
+        <span>Rate</span>
+      </div>`;
+      campaigns.forEach(c => {
+        html += `<div class="campaign-row">
+          <span class="campaign-name">${c.name}</span>
+          <span class="campaign-channel">${c.channel}</span>
+          <span class="campaign-status ${c.status}">${c.status}</span>
+          <span class="campaign-stat">${c.sent.toLocaleString()}</span>
+          <span class="campaign-stat">${c.responses}</span>
+          <span class="campaign-rate" style="color:${c.rate >= 10 ? 'var(--green)' : 'var(--gray-500)'}">${c.rate > 0 ? c.rate + '%' : '—'}</span>
+        </div>`;
+      });
+      const totalSent = campaigns.reduce((a,c) => a+c.sent, 0);
+      const totalResp = campaigns.reduce((a,c) => a+c.responses, 0);
+      html += `<div class="dashboard-footer">
+        <span class="showing">${campaigns.filter(c=>c.status==='active').length} active campaigns · ${totalSent.toLocaleString()} messages sent</span>
+        <span style="font-size:12px;font-family:var(--mono);color:var(--green);font-weight:500">${(totalResp/totalSent*100).toFixed(1)}% avg response</span>
+      </div>`;
+
+    // ——— Analytics Tab ———
+    } else if (activeTab === 'analytics') {
+      const totalVolume = sellers.reduce((a,s)=>a+s.est,0);
+      const avgScore = (sellers.reduce((a,s)=>a+s.score,0)/sellers.length).toFixed(1);
+      html += `<div class="analytics-grid">
+        <div class="analytics-card">
+          <div class="analytics-card-title">Pipeline Volume</div>
+          <div class="analytics-big-num">${fmt$(totalVolume)}</div>
+          <div class="analytics-change up">▲ 12.4% vs last month</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-title">Avg Seller Score</div>
+          <div class="analytics-big-num">${avgScore}</div>
+          <div class="analytics-change up">▲ 2.1 pts vs last month</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-title">Projected Listings (12 weeks)</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+            <div>
+              <div class="analytics-big-num">${weeklyListings.reduce((a,b)=>a+b,0)}</div>
+              <div class="analytics-change up">▲ 8.3% vs prior period</div>
+            </div>
+          </div>
+          <div class="mini-chart">
+            ${weeklyListings.map((v,i) => {
+              const max = Math.max(...weeklyListings);
+              return `<div class="mini-chart-bar" style="height:${(v/max*100)}%"><div class="mini-chart-bar-tooltip">${weekLabels[i]}: ${v}</div></div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-card-title">Conversion Funnel</div>
+          <div class="pipeline-funnel">
+            <div class="funnel-stage">
+              <div class="funnel-bar" style="width:100%;background:var(--gray-200);"></div>
+              <div class="funnel-label">Identified</div>
+              <div class="funnel-value">1,284</div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <div class="funnel-stage">
+              <div class="funnel-bar" style="width:72%;background:var(--green-bg-strong);margin:0 auto 6px;"></div>
+              <div class="funnel-label">Contacted</div>
+              <div class="funnel-value">428</div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <div class="funnel-stage">
+              <div class="funnel-bar" style="width:44%;background:var(--green);margin:0 auto 6px;"></div>
+              <div class="funnel-label">Responded</div>
+              <div class="funnel-value">187</div>
+            </div>
+            <div class="funnel-arrow">→</div>
+            <div class="funnel-stage">
+              <div class="funnel-bar" style="width:22%;background:var(--green-dim);margin:0 auto 6px;"></div>
+              <div class="funnel-label">Listed</div>
+              <div class="funnel-value">64</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="dashboard-footer">
+        <span class="showing">Southern California · Last 90 days</span>
+        <span style="font-size:12px;font-family:var(--mono);color:var(--gray-400);">Updated 2m ago</span>
+      </div>`;
+    }
+
+    el.innerHTML = html;
+    bindEvents();
+  }
+
+  // ——— Event binding ———
+  function bindEvents() {
+    // Tabs
+    document.querySelectorAll('.dashboard-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activeTab = tab.dataset.tab;
+        expandedRow = null;
+        currentPage = 0;
+        render();
+      });
+    });
+
+    // Filters
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        activeFilter = pill.dataset.filter;
+        expandedRow = null;
+        currentPage = 0;
+        render();
+      });
+    });
+
+    // Search
+    const search = document.querySelector('.dashboard-search');
+    if (search) {
+      search.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        expandedRow = null;
+        currentPage = 0;
+        render();
+        // Re-focus and restore cursor position
+        const newSearch = document.querySelector('.dashboard-search');
+        if (newSearch) { newSearch.focus(); newSearch.setSelectionRange(newSearch.value.length, newSearch.value.length); }
+      });
+    }
+
+    // Sort headers
+    document.querySelectorAll('.dashboard-header-row span[data-sort]').forEach(span => {
+      span.addEventListener('click', () => {
+        const col = span.dataset.sort;
+        if (sortCol === col) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortCol = col;
+          sortDir = col === 'address' || col === 'city' || col === 'trigger' ? 'asc' : 'desc';
+        }
+        render();
+      });
+    });
+
+    // Row expansion
+    document.querySelectorAll('.dashboard-row[data-id]').forEach(row => {
+      row.addEventListener('click', () => {
+        const id = parseInt(row.dataset.id);
+        expandedRow = expandedRow === id ? null : id;
+        // Animate without full re-render
+        document.querySelectorAll('.dashboard-row[data-id]').forEach(r => r.classList.remove('expanded'));
+        document.querySelectorAll('.row-detail').forEach(d => d.classList.remove('open'));
+        if (expandedRow) {
+          row.classList.add('expanded');
+          const detail = document.querySelector(`.row-detail[data-detail="${id}"]`);
+          if (detail) detail.classList.add('open');
+        }
+      });
+    });
+
+    // Pagination
+    document.querySelectorAll('[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.page === 'next') currentPage++;
+        if (btn.dataset.page === 'prev') currentPage--;
+        expandedRow = null;
+        render();
+      });
+    });
+  }
+
+  // Initial render
+  render();
+})();
 </script>
 
 </body>
