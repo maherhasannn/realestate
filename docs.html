@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signal — Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --white: #FAFAFA;
+    --black: #0A0A0A;
+    --gray-50: #F5F5F5;
+    --gray-100: #E5E5E5;
+    --gray-200: #D4D4D4;
+    --gray-300: #A3A3A3;
+    --gray-400: #737373;
+    --gray-500: #525252;
+    --gray-600: #404040;
+    --gray-700: #262626;
+    --gray-800: #171717;
+    --gray-900: #0A0A0A;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --green-bright: #4ade80;
+    --green-bg: rgba(34, 197, 94, 0.08);
+    --green-bg-strong: rgba(34, 197, 94, 0.15);
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  html { font-family: var(--font); background: var(--white); color: var(--black); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+  body { overflow-x: hidden; }
+  ::selection { background: var(--green); color: var(--black); }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: var(--font); }
+
+  /* Nav */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 48px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: transparent; backdrop-filter: none; border-bottom: 1px solid transparent; transition: all 0.3s ease; }
+  .nav.scrolled { background: rgba(250,250,250,0.85); backdrop-filter: blur(20px) saturate(1.5); border-bottom-color: var(--gray-100); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; }
+  .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .nav-logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  .nav-links { display: flex; align-items: center; gap: 36px; }
+  .nav-link { font-size: 14px; color: var(--gray-400); transition: color 0.2s; }
+  .nav-link:hover { color: var(--black); }
+  .nav-link.active { color: var(--black); font-weight: 500; }
+  .btn-primary { padding: 8px 20px; font-size: 14px; font-weight: 500; background: var(--black); color: var(--white); border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary:hover { opacity: 0.8; }
+
+  /* Layout */
+  .docs-layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1060px; margin: 0 auto; padding: 88px 24px 80px; gap: 60px; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { position: sticky; top: 88px; align-self: start; }
+  .sidebar-section { margin-bottom: 28px; }
+  .sidebar-title { font-size: 11px; font-family: var(--mono); font-weight: 500; color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+  .sidebar-link { display: block; font-size: 13px; color: var(--gray-400); padding: 6px 0; transition: color 0.15s; cursor: pointer; }
+  .sidebar-link:hover { color: var(--black); }
+  .sidebar-link.active { color: var(--black); font-weight: 500; }
+
+  /* Content */
+  .docs-content { max-width: 680px; }
+  .doc-section { margin-bottom: 56px; scroll-margin-top: 88px; }
+  .doc-section h2 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; }
+  .doc-section h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin: 28px 0 12px; }
+  .doc-section p { font-size: 15px; line-height: 1.7; color: var(--gray-500); margin-bottom: 16px; }
+  .doc-section ul, .doc-section ol { font-size: 15px; line-height: 1.7; color: var(--gray-500); margin-bottom: 16px; padding-left: 20px; }
+  .doc-section li { margin-bottom: 6px; }
+
+  /* Code blocks */
+  .code-block { background: var(--gray-900); color: #e5e5e5; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--gray-800); border-bottom: 1px solid var(--gray-700); }
+  .code-lang { font-size: 11px; font-family: var(--mono); color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; }
+  .code-copy { font-size: 11px; font-family: var(--mono); color: var(--gray-400); background: none; border: 1px solid var(--gray-700); border-radius: 4px; padding: 2px 8px; cursor: pointer; transition: all 0.15s; }
+  .code-copy:hover { color: var(--white); border-color: var(--gray-500); }
+  .code-copy.copied { color: var(--green); border-color: var(--green); }
+  .code-body { padding: 16px; font-family: var(--mono); font-size: 13px; line-height: 1.65; overflow-x: auto; white-space: pre; }
+  .code-body .cm-key { color: #7dd3fc; }
+  .code-body .cm-str { color: #86efac; }
+  .code-body .cm-num { color: #fde68a; }
+  .code-body .cm-comment { color: #737373; }
+  .code-body .cm-method { color: #c4b5fd; }
+  .code-body .cm-kw { color: #f9a8d4; }
+
+  /* Inline code */
+  code { font-family: var(--mono); font-size: 13px; background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 4px; padding: 1px 5px; }
+
+  /* Endpoint cards */
+  .endpoint { background: #fff; border: 1px solid var(--gray-100); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .endpoint-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; transition: background 0.12s; }
+  .endpoint-header:hover { background: var(--gray-50); }
+  .endpoint-method { font-size: 11px; font-family: var(--mono); font-weight: 500; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
+  .endpoint-method.get { background: rgba(59,130,246,0.1); color: #3b82f6; }
+  .endpoint-method.post { background: var(--green-bg); color: var(--green); }
+  .endpoint-method.put { background: rgba(234,179,8,0.1); color: #ca8a04; }
+  .endpoint-method.delete { background: rgba(239,68,68,0.1); color: #ef4444; }
+  .endpoint-path { font-size: 13px; font-family: var(--mono); color: var(--gray-600); }
+  .endpoint-desc { font-size: 13px; color: var(--gray-400); margin-left: auto; }
+  .endpoint-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; border-top: 0 solid var(--gray-100); }
+  .endpoint.open .endpoint-body { max-height: 600px; border-top-width: 1px; }
+  .endpoint-body-inner { padding: 16px; }
+  .endpoint-body p { font-size: 13px; color: var(--gray-500); line-height: 1.6; margin-bottom: 12px; }
+
+  /* Param table */
+  .param-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .param-table th { font-size: 11px; font-family: var(--mono); color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 6px 0; border-bottom: 1px solid var(--gray-100); }
+  .param-table td { font-size: 13px; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--gray-50); vertical-align: top; }
+  .param-name { font-family: var(--mono); font-weight: 500; }
+  .param-type { font-family: var(--mono); color: var(--gray-300); font-size: 12px; }
+  .param-desc { color: var(--gray-400); }
+  .param-req { font-size: 10px; font-family: var(--mono); color: var(--green); background: var(--green-bg); padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+
+  /* Divider */
+  .doc-divider { border: none; border-top: 1px solid var(--gray-100); margin: 0 0 56px; }
+
+  /* Footer */
+  .site-footer { display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; border-top: 1px solid var(--gray-100); }
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .footer-logo-text { font-size: 13px; font-weight: 500; color: var(--gray-400); }
+  .footer-copy { font-size: 12px; color: var(--gray-300); }
+
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-links { gap: 20px; }
+    .nav-links .nav-link-desktop { display: none; }
+    .docs-layout { grid-template-columns: 1fr; padding-top: 80px; gap: 24px; }
+    .sidebar { position: static; display: flex; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--gray-100); padding-bottom: 20px; }
+    .sidebar-section { margin-bottom: 0; }
+    .site-footer { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">Signal</span>
+  </a>
+  <div class="nav-links">
+    <a href="product.html" class="nav-link nav-link-desktop">Product</a>
+    <a href="pricing.html" class="nav-link nav-link-desktop">Pricing</a>
+    <a href="docs.html" class="nav-link nav-link-desktop active">Docs</a>
+    <a href="login.html" class="nav-link">Log in</a>
+    <button class="btn-primary" onclick="location.href='login.html'">Start free trial</button>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Getting started</div>
+      <a class="sidebar-link active" href="#quickstart">Quickstart</a>
+      <a class="sidebar-link" href="#authentication">Authentication</a>
+      <a class="sidebar-link" href="#rate-limits">Rate limits</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">API Reference</div>
+      <a class="sidebar-link" href="#sellers">Sellers</a>
+      <a class="sidebar-link" href="#campaigns">Campaigns</a>
+      <a class="sidebar-link" href="#content">Content</a>
+      <a class="sidebar-link" href="#webhooks">Webhooks</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Guides</div>
+      <a class="sidebar-link" href="#crm-integration">CRM integration</a>
+      <a class="sidebar-link" href="#data-model">Data model</a>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <main class="docs-content">
+
+    <!-- Quickstart -->
+    <section class="doc-section" id="quickstart">
+      <h2>Quickstart</h2>
+      <p>Get up and running with the Signal API in under five minutes. The API gives you programmatic access to seller scores, campaigns, content, and pipeline data.</p>
+
+      <h3>1. Get your API key</h3>
+      <p>Navigate to <strong>Settings &rarr; API</strong> in your Signal dashboard and generate a new key. Store it securely — it won't be shown again.</p>
+
+      <h3>2. Make your first request</h3>
+      <p>Fetch your top-scoring sellers with a single call:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="code-copy" data-code="curl">Copy</button>
+        </div>
+        <div class="code-body">curl https://api.signal.re/v1/sellers \
+  -H <span class="cm-str">"Authorization: Bearer sk_live_..."</span> \
+  -d <span class="cm-str">'{"min_score": 90, "limit": 10}'</span></div>
+      </div>
+
+      <h3>3. Parse the response</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">json</span>
+          <button class="code-copy" data-code="json">Copy</button>
+        </div>
+        <div class="code-body">{
+  <span class="cm-key">"data"</span>: [
+    {
+      <span class="cm-key">"id"</span>: <span class="cm-str">"sel_1a2b3c"</span>,
+      <span class="cm-key">"address"</span>: <span class="cm-str">"1847 Sunset Blvd"</span>,
+      <span class="cm-key">"city"</span>: <span class="cm-str">"Pacific Palisades"</span>,
+      <span class="cm-key">"score"</span>: <span class="cm-num">94</span>,
+      <span class="cm-key">"estimated_value"</span>: <span class="cm-num">4200000</span>,
+      <span class="cm-key">"trigger"</span>: <span class="cm-str">"Divorce filing"</span>,
+      <span class="cm-key">"days_on_signal"</span>: <span class="cm-num">12</span>
+    }
+  ],
+  <span class="cm-key">"has_more"</span>: <span class="cm-kw">true</span>,
+  <span class="cm-key">"total"</span>: <span class="cm-num">312</span>
+}</div>
+      </div>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Authentication -->
+    <section class="doc-section" id="authentication">
+      <h2>Authentication</h2>
+      <p>All API requests require a valid API key sent via the <code>Authorization</code> header using Bearer authentication.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">http</span><button class="code-copy">Copy</button></div>
+        <div class="code-body">Authorization: Bearer sk_live_your_api_key_here</div>
+      </div>
+
+      <p>Keys are scoped to your brokerage. You can create multiple keys with different permissions in the dashboard. Test keys (prefixed <code>sk_test_</code>) hit a sandbox with sample data.</p>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Rate limits -->
+    <section class="doc-section" id="rate-limits">
+      <h2>Rate limits</h2>
+      <p>The API enforces rate limits per key to ensure platform stability.</p>
+      <table class="param-table">
+        <thead><tr><th>Plan</th><th>Limit</th><th>Burst</th></tr></thead>
+        <tbody>
+          <tr><td>Starter</td><td>100 req/min</td><td>20 req/sec</td></tr>
+          <tr><td>Pro</td><td>500 req/min</td><td>50 req/sec</td></tr>
+          <tr><td>Enterprise</td><td>Custom</td><td>Custom</td></tr>
+        </tbody>
+      </table>
+      <p>Rate limit headers are included in every response: <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code>. When exceeded, the API returns <code>429 Too Many Requests</code>.</p>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Sellers -->
+    <section class="doc-section" id="sellers">
+      <h2>Sellers</h2>
+      <p>The sellers endpoint gives you access to Signal's predictive scoring data — every homeowner scored on their likelihood to sell.</p>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/v1/sellers</span>
+          <span class="endpoint-desc">List scored sellers</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Returns a paginated list of sellers matching the given filters, sorted by score descending by default.</p>
+            <table class="param-table">
+              <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">min_score</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Minimum seller score (0-100)</td></tr>
+                <tr><td><span class="param-name">city</span></td><td><span class="param-type">string</span></td><td class="param-desc">Filter by city name</td></tr>
+                <tr><td><span class="param-name">trigger</span></td><td><span class="param-type">string</span></td><td class="param-desc">Filter by trigger event type</td></tr>
+                <tr><td><span class="param-name">in_outreach</span></td><td><span class="param-type">boolean</span></td><td class="param-desc">Only return sellers with active outreach</td></tr>
+                <tr><td><span class="param-name">limit</span></td><td><span class="param-type">integer</span></td><td class="param-desc">Results per page (default 25, max 100)</td></tr>
+                <tr><td><span class="param-name">cursor</span></td><td><span class="param-type">string</span></td><td class="param-desc">Pagination cursor from previous response</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/v1/sellers/:id</span>
+          <span class="endpoint-desc">Get seller detail</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Returns full detail for a single seller, including property data, ownership history, mortgage info, and outreach status.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Campaigns -->
+    <section class="doc-section" id="campaigns">
+      <h2>Campaigns</h2>
+      <p>Manage automated outreach campaigns programmatically.</p>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/v1/campaigns</span>
+          <span class="endpoint-desc">List campaigns</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Returns all campaigns for your brokerage, including status, send counts, and response metrics.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method post">POST</span>
+          <span class="endpoint-path">/v1/campaigns</span>
+          <span class="endpoint-desc">Create campaign</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Create a new outreach campaign. Specify target sellers by score range, geography, or trigger type.</p>
+            <table class="param-table">
+              <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">name</span><span class="param-req">required</span></td><td><span class="param-type">string</span></td><td class="param-desc">Campaign display name</td></tr>
+                <tr><td><span class="param-name">channels</span><span class="param-req">required</span></td><td><span class="param-type">string[]</span></td><td class="param-desc">Array of: <code>sms</code>, <code>email</code>, <code>mail</code>, <code>retargeting</code></td></tr>
+                <tr><td><span class="param-name">seller_filter</span><span class="param-req">required</span></td><td><span class="param-type">object</span></td><td class="param-desc">Filter object (same params as /v1/sellers)</td></tr>
+                <tr><td><span class="param-name">agent_id</span></td><td><span class="param-type">string</span></td><td class="param-desc">Assign to a specific agent</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method put">PUT</span>
+          <span class="endpoint-path">/v1/campaigns/:id</span>
+          <span class="endpoint-desc">Update campaign</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Update campaign settings or pause/resume a running campaign.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Content -->
+    <section class="doc-section" id="content">
+      <h2>Content</h2>
+      <p>Access and manage auto-generated market reports and seller guides.</p>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method get">GET</span>
+          <span class="endpoint-path">/v1/content</span>
+          <span class="endpoint-desc">List content pieces</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Returns generated content pieces filtered by type, zip code, or status.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint" data-endpoint>
+        <div class="endpoint-header">
+          <span class="endpoint-method post">POST</span>
+          <span class="endpoint-path">/v1/content/generate</span>
+          <span class="endpoint-desc">Generate content</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="endpoint-body-inner">
+            <p>Trigger generation of a new market report or seller guide for a specific zip code.</p>
+            <table class="param-table">
+              <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="param-name">type</span><span class="param-req">required</span></td><td><span class="param-type">string</span></td><td class="param-desc"><code>market_report</code>, <code>seller_guide</code>, or <code>neighborhood_analysis</code></td></tr>
+                <tr><td><span class="param-name">zip_code</span><span class="param-req">required</span></td><td><span class="param-type">string</span></td><td class="param-desc">Target zip code</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Webhooks -->
+    <section class="doc-section" id="webhooks">
+      <h2>Webhooks</h2>
+      <p>Receive real-time notifications when events occur in Signal. Configure webhook endpoints in your dashboard under <strong>Settings &rarr; Webhooks</strong>.</p>
+
+      <h3>Available events</h3>
+      <table class="param-table">
+        <thead><tr><th>Event</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="param-name">seller.score_changed</span></td><td class="param-desc">A seller's score crossed a threshold you've configured</td></tr>
+          <tr><td><span class="param-name">seller.new_signal</span></td><td class="param-desc">A new trigger event detected for a tracked property</td></tr>
+          <tr><td><span class="param-name">campaign.response</span></td><td class="param-desc">A seller responded to an outreach campaign</td></tr>
+          <tr><td><span class="param-name">campaign.completed</span></td><td class="param-desc">A campaign finished its sequence</td></tr>
+          <tr><td><span class="param-name">content.published</span></td><td class="param-desc">A generated content piece is ready</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Payload format</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">json</span><button class="code-copy">Copy</button></div>
+        <div class="code-body">{
+  <span class="cm-key">"event"</span>: <span class="cm-str">"seller.new_signal"</span>,
+  <span class="cm-key">"timestamp"</span>: <span class="cm-str">"2026-04-28T14:32:00Z"</span>,
+  <span class="cm-key">"data"</span>: {
+    <span class="cm-key">"seller_id"</span>: <span class="cm-str">"sel_1a2b3c"</span>,
+    <span class="cm-key">"trigger"</span>: <span class="cm-str">"Pre-foreclosure"</span>,
+    <span class="cm-key">"score"</span>: <span class="cm-num">91</span>,
+    <span class="cm-key">"previous_score"</span>: <span class="cm-num">74</span>
+  }
+}</div>
+      </div>
+      <p>Signal retries failed webhook deliveries up to 5 times with exponential backoff. Verify payloads using the <code>X-Signal-Signature</code> header (HMAC-SHA256 of the body using your webhook secret).</p>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- CRM Integration -->
+    <section class="doc-section" id="crm-integration">
+      <h2>CRM integration</h2>
+      <p>Signal integrates natively with major real estate CRMs. Seller data, scores, and campaign activity sync automatically.</p>
+
+      <h3>Supported CRMs</h3>
+      <ul>
+        <li><strong>Follow Up Boss</strong> — Bi-directional sync of contacts, notes, and deal stages</li>
+        <li><strong>KvCORE</strong> — Lead import and score overlay on existing contacts</li>
+        <li><strong>BoomTown</strong> — Pipeline sync and automated task creation</li>
+        <li><strong>Chime</strong> — Contact enrichment and campaign triggers</li>
+        <li><strong>Salesforce</strong> — Custom object mapping with managed package</li>
+      </ul>
+      <p>To connect, go to <strong>Settings &rarr; Integrations</strong>, select your CRM, and follow the OAuth flow. Data begins syncing within 60 seconds.</p>
+
+      <h3>Zapier</h3>
+      <p>For CRMs without a native integration, use our Zapier app. It exposes all webhook events as triggers and all API endpoints as actions.</p>
+    </section>
+
+    <hr class="doc-divider" />
+
+    <!-- Data Model -->
+    <section class="doc-section" id="data-model">
+      <h2>Data model</h2>
+      <p>Signal's core entities and how they relate:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">text</span><button class="code-copy">Copy</button></div>
+        <div class="code-body"><span class="cm-comment">Brokerage</span>
+  &boxur;&horz; <span class="cm-key">Agents[]</span>
+  &boxur;&horz; <span class="cm-key">Sellers[]</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">score</span>          <span class="cm-comment"># 0-100 likelihood to sell</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">triggers[]</span>     <span class="cm-comment"># life events, financial signals</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">property</span>       <span class="cm-comment"># beds, baths, sqft, lot, year</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">ownership</span>      <span class="cm-comment"># purchase date, mortgage, equity</span>
+  &boxv;    &boxdr;&horz; <span class="cm-str">outreach_status</span> <span class="cm-comment"># none | active | responded</span>
+  &boxur;&horz; <span class="cm-key">Campaigns[]</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">channels[]</span>     <span class="cm-comment"># sms, email, mail, retargeting</span>
+  &boxv;    &boxur;&horz; <span class="cm-str">seller_filter</span>  <span class="cm-comment"># targeting criteria</span>
+  &boxv;    &boxdr;&horz; <span class="cm-str">metrics</span>        <span class="cm-comment"># sent, responses, rate</span>
+  &boxdr;&horz; <span class="cm-key">Content[]</span>
+       &boxur;&horz; <span class="cm-str">type</span>           <span class="cm-comment"># market_report, seller_guide, etc.</span>
+       &boxdr;&horz; <span class="cm-str">zip_code</span>       <span class="cm-comment"># target geography</span></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-logo">
+    <div class="footer-logo-dot"></div>
+    <span class="footer-logo-text">Signal</span>
+  </div>
+  <span class="footer-copy">&copy; 2026 Signal Technologies, Inc.</span>
+</footer>
+
+<script>
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20), { passive: true });
+
+  // Sidebar active tracking
+  const sections = document.querySelectorAll('.doc-section[id]');
+  const sidebarLinks = document.querySelectorAll('.sidebar-link');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    sidebarLinks.forEach(l => {
+      l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+    });
+  }, { passive: true });
+
+  // Endpoint expand/collapse
+  document.querySelectorAll('.endpoint-header').forEach(h => {
+    h.addEventListener('click', () => {
+      const ep = h.parentElement;
+      const wasOpen = ep.classList.contains('open');
+      document.querySelectorAll('.endpoint').forEach(e => e.classList.remove('open'));
+      if (!wasOpen) ep.classList.add('open');
+    });
+  });
+
+  // Copy code
+  document.querySelectorAll('.code-copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const block = btn.closest('.code-block');
+      const code = block.querySelector('.code-body').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    });
+  });
+</script>
+</body>
+</html>

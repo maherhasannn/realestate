@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signal — Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --white: #FAFAFA;
+    --black: #0A0A0A;
+    --gray-50: #F5F5F5;
+    --gray-100: #E5E5E5;
+    --gray-200: #D4D4D4;
+    --gray-300: #A3A3A3;
+    --gray-400: #737373;
+    --gray-500: #525252;
+    --gray-600: #404040;
+    --gray-700: #262626;
+    --gray-800: #171717;
+    --gray-900: #0A0A0A;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --green-bright: #4ade80;
+    --green-bg: rgba(34, 197, 94, 0.08);
+    --green-bg-strong: rgba(34, 197, 94, 0.15);
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  html { font-family: var(--font); background: var(--white); color: var(--black); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+  body { overflow-x: hidden; }
+  ::selection { background: var(--green); color: var(--black); }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: var(--font); }
+
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(24px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ——— Nav ——— */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 48px; height: 64px; display: flex; align-items: center; justify-content: space-between; background: transparent; backdrop-filter: none; border-bottom: 1px solid transparent; transition: all 0.3s ease; }
+  .nav.scrolled { background: rgba(250,250,250,0.85); backdrop-filter: blur(20px) saturate(1.5); border-bottom-color: var(--gray-100); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; }
+  .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .nav-logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  .nav-links { display: flex; align-items: center; gap: 36px; }
+  .nav-link { font-size: 14px; color: var(--gray-400); transition: color 0.2s; }
+  .nav-link:hover { color: var(--black); }
+  .nav-link.active { color: var(--black); font-weight: 500; }
+  .btn-primary { padding: 8px 20px; font-size: 14px; font-weight: 500; background: var(--black); color: var(--white); border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary:hover { opacity: 0.8; }
+  .btn-primary-lg { padding: 14px 32px; font-size: 15px; font-weight: 500; background: var(--black); color: var(--white); border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary-lg:hover { opacity: 0.8; }
+  .btn-secondary-lg { padding: 14px 32px; font-size: 15px; font-weight: 500; background: transparent; color: var(--black); border: 1px solid var(--gray-200); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary-lg:hover { border-color: var(--black); }
+
+  /* ——— Hero ——— */
+  .hero { padding: 160px 24px 80px; text-align: center; }
+  .hero-tag { font-size: 12px; font-family: var(--mono); font-weight: 500; color: var(--green); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+  .hero h1 { font-size: 56px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.08; max-width: 680px; margin: 0 auto 24px; animation: fadeUp 0.8s ease forwards; }
+  .hero-sub { font-size: 18px; line-height: 1.6; color: var(--gray-400); max-width: 540px; margin: 0 auto; animation: fadeUp 0.8s ease 0.1s forwards; }
+
+  /* ——— Capabilities grid ——— */
+  .capabilities { padding: 80px 24px; }
+  .capabilities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-100); border-radius: 12px; overflow: hidden; max-width: 960px; margin: 0 auto; }
+  .cap-card { background: #fff; padding: 40px 32px; }
+  .cap-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--green-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 16px; }
+  .cap-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .cap-desc { font-size: 14px; line-height: 1.6; color: var(--gray-400); }
+
+  /* ——— Deep-dive sections ——— */
+  .deep-section { padding: 100px 24px; max-width: 1060px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .deep-section.reverse { direction: rtl; }
+  .deep-section.reverse > * { direction: ltr; }
+  .deep-tag { font-size: 11px; font-family: var(--mono); font-weight: 500; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+  .deep-title { font-size: 32px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 16px; }
+  .deep-desc { font-size: 16px; line-height: 1.7; color: var(--gray-400); margin-bottom: 24px; }
+  .deep-list { list-style: none; padding: 0; }
+  .deep-list li { font-size: 14px; line-height: 1.6; color: var(--gray-500); padding: 8px 0; border-bottom: 1px solid var(--gray-100); display: flex; align-items: baseline; gap: 10px; }
+  .deep-list li:last-child { border-bottom: none; }
+  .deep-check { color: var(--green); font-size: 13px; flex-shrink: 0; }
+
+  /* Visual mock panels */
+  .mock-panel { background: #fff; border-radius: 12px; border: 1px solid var(--gray-100); box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.06); overflow: hidden; }
+  .mock-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100); }
+  .mock-dots { display: flex; gap: 6px; }
+  .mock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-200); }
+  .mock-label { font-size: 11px; font-family: var(--mono); color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.06em; }
+  .mock-body { padding: 20px; }
+  .mock-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-50); }
+  .mock-row:last-child { border-bottom: none; }
+  .mock-row-label { font-size: 13px; color: var(--gray-500); }
+  .mock-row-value { font-size: 13px; font-family: var(--mono); font-weight: 500; }
+  .mock-bar-track { width: 80px; height: 4px; background: var(--gray-100); border-radius: 2px; overflow: hidden; }
+  .mock-bar-fill { height: 100%; border-radius: 2px; background: var(--green); }
+  .mock-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mock-stat { background: var(--gray-50); border-radius: 8px; padding: 14px; }
+  .mock-stat-value { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .mock-stat-label { font-size: 11px; font-family: var(--mono); color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+  .mock-chart { display: flex; align-items: flex-end; gap: 4px; height: 64px; padding: 16px 0 0; }
+  .mock-chart-bar { flex: 1; border-radius: 2px 2px 0 0; background: var(--green-bg-strong); }
+
+  /* ——— Data sources ——— */
+  .data-section { padding: 80px 24px; background: var(--gray-50); }
+  .data-inner { max-width: 760px; margin: 0 auto; text-align: center; }
+  .data-title { font-size: 14px; font-family: var(--mono); font-weight: 500; color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 32px; }
+  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .data-chip { background: #fff; border: 1px solid var(--gray-100); border-radius: 8px; padding: 16px 12px; text-align: center; }
+  .data-chip-num { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+  .data-chip-label { font-size: 11px; font-family: var(--mono); color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+
+  /* ——— Integrations ——— */
+  .integrations { padding: 80px 24px; max-width: 760px; margin: 0 auto; text-align: center; }
+  .integrations h2 { font-size: 32px; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 12px; }
+  .integrations-sub { font-size: 16px; color: var(--gray-400); line-height: 1.6; margin-bottom: 40px; }
+  .integrations-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .int-logo { padding: 10px 20px; background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--gray-500); transition: border-color 0.15s; }
+  .int-logo:hover { border-color: var(--gray-300); }
+
+  /* ——— CTA ——— */
+  .cta-section { padding: 120px 24px; text-align: center; }
+  .cta-inner { max-width: 560px; margin: 0 auto; }
+  .cta-inner h2 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 16px; }
+  .cta-inner p { font-size: 16px; color: var(--gray-400); line-height: 1.6; margin-bottom: 36px; }
+  .cta-buttons { display: flex; justify-content: center; gap: 12px; }
+
+  /* ——— Footer ——— */
+  .site-footer { display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; border-top: 1px solid var(--gray-100); }
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .footer-logo-text { font-size: 13px; font-weight: 500; color: var(--gray-400); }
+  .footer-copy { font-size: 12px; color: var(--gray-300); }
+
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .nav-links { gap: 20px; }
+    .nav-links .nav-link-desktop { display: none; }
+    .hero h1 { font-size: 36px; }
+    .capabilities-grid { grid-template-columns: 1fr; }
+    .deep-section { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px; }
+    .deep-section.reverse { direction: ltr; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+    .cta-inner h2 { font-size: 32px; }
+    .site-footer { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">Signal</span>
+  </a>
+  <div class="nav-links">
+    <a href="product.html" class="nav-link nav-link-desktop active">Product</a>
+    <a href="pricing.html" class="nav-link nav-link-desktop">Pricing</a>
+    <a href="docs.html" class="nav-link nav-link-desktop">Docs</a>
+    <a href="login.html" class="nav-link">Log in</a>
+    <button class="btn-primary" onclick="location.href='login.html'">Start free trial</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-tag">Product</div>
+  <h1>A trading terminal for residential real estate</h1>
+  <p class="hero-sub">Signal combines predictive analytics, automated outreach, authority content, and live pipeline visibility into a single platform built for modern brokerages.</p>
+</section>
+
+<!-- Capabilities grid -->
+<section class="capabilities">
+  <div class="capabilities-grid">
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#22c55e" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="cap-title">Predictive scoring</div>
+      <div class="cap-desc">Every homeowner scored on likelihood to sell in the next 90 days using 47 data streams.</div>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 3 5-7" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="cap-title">Multi-channel outreach</div>
+      <div class="cap-desc">Automated SMS, email, direct mail, and retargeting triggered by seller signals.</div>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#22c55e" stroke-width="1.5"/><path d="M5 7h6M5 10h4" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="cap-title">Content generation</div>
+      <div class="cap-desc">Hyperlocal market reports and seller guides generated for every micro-market.</div>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#22c55e" stroke-width="1.5"/><path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="cap-title">Agent assignment</div>
+      <div class="cap-desc">Auto-route high-probability sellers to the right agent by geography and specialty.</div>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="#22c55e" stroke-width="1.5"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="#22c55e" stroke-width="1.5"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="#22c55e" stroke-width="1.5"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="#22c55e" stroke-width="1.5"/></svg>
+      </div>
+      <div class="cap-title">Brokerage dashboard</div>
+      <div class="cap-desc">Live pipeline view across every agent, region, and price point. No more spreadsheets.</div>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M8 4v8" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="cap-title">API &amp; integrations</div>
+      <div class="cap-desc">Connect to your MLS, CRM, and marketing stack via REST API and native integrations.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Deep dive 1: Predictive Engine -->
+<section class="deep-section">
+  <div>
+    <div class="deep-tag">Predictive engine</div>
+    <div class="deep-title">Know who's selling before they list</div>
+    <div class="deep-desc">Signal ingests 47 data streams and scores every homeowner on their likelihood to sell in the next 90 days. The model retrains weekly on actual listing outcomes.</div>
+    <ul class="deep-list">
+      <li><span class="deep-check">&#10003;</span> Public records, permits, mortgage events</li>
+      <li><span class="deep-check">&#10003;</span> Behavioral signals (browsing, inquiry patterns)</li>
+      <li><span class="deep-check">&#10003;</span> Life event triggers (divorce, probate, relocation)</li>
+      <li><span class="deep-check">&#10003;</span> 94% accuracy on 90-day predictions</li>
+      <li><span class="deep-check">&#10003;</span> Updated daily, retrains weekly</li>
+    </ul>
+  </div>
+  <div class="mock-panel">
+    <div class="mock-toolbar">
+      <div class="mock-dots"><div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div></div>
+      <div class="mock-label">Seller scores</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-row"><span class="mock-row-label">1520 Benedict Cyn</span><span class="mock-row-value" style="color:var(--green)">96</span></div>
+      <div class="mock-row"><span class="mock-row-label">1847 Sunset Blvd</span><span class="mock-row-value" style="color:var(--green)">94</span></div>
+      <div class="mock-row"><span class="mock-row-label">330 Palisades Dr</span><span class="mock-row-value" style="color:var(--green)">93</span></div>
+      <div class="mock-row"><span class="mock-row-label">701 N Elm Dr</span><span class="mock-row-value" style="color:var(--green)">92</span></div>
+      <div class="mock-row"><span class="mock-row-label">3201 Ocean Ave</span><span class="mock-row-value" style="color:var(--green)">91</span></div>
+      <div class="mock-row">
+        <span class="mock-row-label">Score distribution</span>
+        <div class="mock-bar-track" style="width:120px"><div class="mock-bar-fill" style="width:78%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Deep dive 2: Outreach -->
+<section class="deep-section reverse" style="border-top:1px solid var(--gray-100);">
+  <div>
+    <div class="deep-tag">Automated outreach</div>
+    <div class="deep-title">Launch campaigns without lifting a finger</div>
+    <div class="deep-desc">When Signal identifies a high-probability seller, it triggers multi-channel sequences — personalized SMS, email, direct mail, and retargeting ads. All compliant, all trackable.</div>
+    <ul class="deep-list">
+      <li><span class="deep-check">&#10003;</span> Personalized SMS, email, and direct mail</li>
+      <li><span class="deep-check">&#10003;</span> Retargeting ad campaigns on Meta + Google</li>
+      <li><span class="deep-check">&#10003;</span> DNC / TCPA / CAN-SPAM compliant by default</li>
+      <li><span class="deep-check">&#10003;</span> A/B testing built in</li>
+      <li><span class="deep-check">&#10003;</span> Response tracking across all channels</li>
+    </ul>
+  </div>
+  <div class="mock-panel">
+    <div class="mock-toolbar">
+      <div class="mock-dots"><div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div></div>
+      <div class="mock-label">Campaigns</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-stat-grid">
+        <div class="mock-stat"><div class="mock-stat-value">428</div><div class="mock-stat-label">Active</div></div>
+        <div class="mock-stat"><div class="mock-stat-value">14.2%</div><div class="mock-stat-label">Response rate</div></div>
+        <div class="mock-stat"><div class="mock-stat-value">1,927</div><div class="mock-stat-label">Sent this week</div></div>
+        <div class="mock-stat"><div class="mock-stat-value">239</div><div class="mock-stat-label">Replies</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Deep dive 3: Content -->
+<section class="deep-section" style="border-top:1px solid var(--gray-100);">
+  <div>
+    <div class="deep-tag">Authority content</div>
+    <div class="deep-title">Hyperlocal content that builds trust</div>
+    <div class="deep-desc">Signal generates market reports, neighborhood analyses, and seller guides tailored to each micro-market. Your agents become the local expert without writing a word.</div>
+    <ul class="deep-list">
+      <li><span class="deep-check">&#10003;</span> Monthly market reports per zip code</li>
+      <li><span class="deep-check">&#10003;</span> Seller guides with local comps</li>
+      <li><span class="deep-check">&#10003;</span> Neighborhood trend analyses</li>
+      <li><span class="deep-check">&#10003;</span> Branded with your brokerage identity</li>
+      <li><span class="deep-check">&#10003;</span> Auto-distributed via email and social</li>
+    </ul>
+  </div>
+  <div class="mock-panel">
+    <div class="mock-toolbar">
+      <div class="mock-dots"><div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div></div>
+      <div class="mock-label">Content library</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-row"><span class="mock-row-label">Pacific Palisades Q2 Report</span><span class="mock-row-value" style="color:var(--green)">Published</span></div>
+      <div class="mock-row"><span class="mock-row-label">Beverly Hills Seller Guide</span><span class="mock-row-value" style="color:var(--green)">Published</span></div>
+      <div class="mock-row"><span class="mock-row-label">Malibu Market Trends</span><span class="mock-row-value" style="color:var(--green)">Published</span></div>
+      <div class="mock-row"><span class="mock-row-label">Brentwood Neighborhood Analysis</span><span class="mock-row-value" style="color:#ca8a04">Draft</span></div>
+      <div class="mock-row"><span class="mock-row-label">Hollywood Hills Comps Sheet</span><span class="mock-row-value" style="color:var(--gray-300)">Scheduled</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Deep dive 4: Brokerage view -->
+<section class="deep-section reverse" style="border-top:1px solid var(--gray-100);">
+  <div>
+    <div class="deep-tag">Brokerage view</div>
+    <div class="deep-title">A live pipeline across your entire org</div>
+    <div class="deep-desc">Leadership sees every opportunity, every campaign, every conversion in real time. Filter by agent, region, price point, or probability score.</div>
+    <ul class="deep-list">
+      <li><span class="deep-check">&#10003;</span> Real-time pipeline dashboard</li>
+      <li><span class="deep-check">&#10003;</span> Filter by agent, region, price, score</li>
+      <li><span class="deep-check">&#10003;</span> Conversion funnel analytics</li>
+      <li><span class="deep-check">&#10003;</span> Commission projections</li>
+      <li><span class="deep-check">&#10003;</span> Exportable reports for leadership</li>
+    </ul>
+  </div>
+  <div class="mock-panel">
+    <div class="mock-toolbar">
+      <div class="mock-dots"><div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div></div>
+      <div class="mock-label">Pipeline overview</div>
+    </div>
+    <div class="mock-body">
+      <div class="mock-stat-grid">
+        <div class="mock-stat"><div class="mock-stat-value">$486M</div><div class="mock-stat-label">Pipeline volume</div></div>
+        <div class="mock-stat"><div class="mock-stat-value">$14.2M</div><div class="mock-stat-label">Projected commission</div></div>
+      </div>
+      <div class="mock-chart">
+        <div class="mock-chart-bar" style="height:40%"></div>
+        <div class="mock-chart-bar" style="height:52%"></div>
+        <div class="mock-chart-bar" style="height:45%"></div>
+        <div class="mock-chart-bar" style="height:67%"></div>
+        <div class="mock-chart-bar" style="height:58%"></div>
+        <div class="mock-chart-bar" style="height:73%"></div>
+        <div class="mock-chart-bar" style="height:62%"></div>
+        <div class="mock-chart-bar" style="height:80%"></div>
+        <div class="mock-chart-bar" style="height:77%"></div>
+        <div class="mock-chart-bar" style="height:90%"></div>
+        <div class="mock-chart-bar" style="height:85%"></div>
+        <div class="mock-chart-bar" style="height:100%"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Data sources -->
+<section class="data-section">
+  <div class="data-inner">
+    <div class="data-title">Data that powers Signal</div>
+    <div class="data-grid">
+      <div class="data-chip"><div class="data-chip-num">47</div><div class="data-chip-label">Data streams</div></div>
+      <div class="data-chip"><div class="data-chip-num">340+</div><div class="data-chip-label">Zip codes</div></div>
+      <div class="data-chip"><div class="data-chip-num">2.1M</div><div class="data-chip-label">Properties tracked</div></div>
+      <div class="data-chip"><div class="data-chip-num">94%</div><div class="data-chip-label">Prediction accuracy</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Integrations -->
+<section class="integrations">
+  <h2>Connects to your stack</h2>
+  <p class="integrations-sub">Native integrations with the tools your brokerage already uses. Plus a REST API for anything custom.</p>
+  <div class="integrations-logos">
+    <div class="int-logo">Salesforce</div>
+    <div class="int-logo">Follow Up Boss</div>
+    <div class="int-logo">KvCORE</div>
+    <div class="int-logo">BoomTown</div>
+    <div class="int-logo">Chime</div>
+    <div class="int-logo">Zapier</div>
+    <div class="int-logo">Mailchimp</div>
+    <div class="int-logo">Google Ads</div>
+    <div class="int-logo">Meta Ads</div>
+    <div class="int-logo">MLS (RETS/RESO)</div>
+    <div class="int-logo">REST API</div>
+    <div class="int-logo">Webhooks</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2>See your market<br>before everyone else</h2>
+    <p>Signal is currently available for brokerages with 10+ agents in select California markets.</p>
+    <div class="cta-buttons">
+      <button class="btn-primary-lg" onclick="location.href='login.html'">Start free trial</button>
+      <button class="btn-secondary-lg">Book a demo</button>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-logo">
+    <div class="footer-logo-dot"></div>
+    <span class="footer-logo-text">Signal</span>
+  </div>
+  <span class="footer-copy">&copy; 2026 Signal Technologies, Inc.</span>
+</footer>
+
+<script>
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+</script>
+</body>
+</html>

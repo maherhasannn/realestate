@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signal — Log in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --white: #FAFAFA;
+    --black: #0A0A0A;
+    --gray-50: #F5F5F5;
+    --gray-100: #E5E5E5;
+    --gray-200: #D4D4D4;
+    --gray-300: #A3A3A3;
+    --gray-400: #737373;
+    --gray-500: #525252;
+    --gray-600: #404040;
+    --gray-700: #262626;
+    --gray-800: #171717;
+    --gray-900: #0A0A0A;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --green-bright: #4ade80;
+    --green-bg: rgba(34, 197, 94, 0.08);
+    --green-bg-strong: rgba(34, 197, 94, 0.15);
+    --red: #ef4444;
+    --red-bg: rgba(239, 68, 68, 0.08);
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  html { font-family: var(--font); background: var(--white); color: var(--black); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body { overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+  ::selection { background: var(--green); color: var(--black); }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: var(--font); }
+
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Nav (minimal) */
+  .nav { padding: 0 48px; height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gray-100); }
+  .nav-logo { display: flex; align-items: center; gap: 8px; }
+  .nav-logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .nav-logo-text { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+  .nav-back { font-size: 14px; color: var(--gray-400); transition: color 0.2s; }
+  .nav-back:hover { color: var(--black); }
+
+  /* Main */
+  .login-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+
+  .auth-container { width: 100%; max-width: 380px; animation: fadeUp 0.6s ease forwards; }
+
+  /* Tabs */
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 1px solid var(--gray-100); }
+  .auth-tab { flex: 1; padding: 12px 0; font-size: 14px; font-weight: 500; color: var(--gray-300); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .auth-tab.active { color: var(--black); border-bottom-color: var(--black); }
+  .auth-tab:hover { color: var(--gray-500); }
+
+  /* Form */
+  .auth-form { display: none; }
+  .auth-form.active { display: block; }
+
+  .form-title { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .form-sub { font-size: 14px; color: var(--gray-400); line-height: 1.5; margin-bottom: 28px; }
+
+  .field { margin-bottom: 18px; }
+  .field-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--gray-600); }
+  .field-input { width: 100%; padding: 10px 14px; font-size: 14px; font-family: var(--font); border: 1px solid var(--gray-200); border-radius: 8px; background: #fff; color: var(--black); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .field-input:focus { border-color: var(--black); box-shadow: 0 0 0 3px rgba(10,10,10,0.06); }
+  .field-input.error { border-color: var(--red); }
+  .field-input::placeholder { color: var(--gray-300); }
+  .field-error { font-size: 12px; color: var(--red); margin-top: 4px; display: none; }
+  .field-error.visible { display: block; }
+
+  .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .field-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-500); cursor: pointer; }
+  .field-check input { width: 14px; height: 14px; accent-color: var(--green); cursor: pointer; }
+  .field-forgot { font-size: 13px; color: var(--gray-400); transition: color 0.15s; }
+  .field-forgot:hover { color: var(--black); }
+
+  .submit-btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 500; font-family: var(--font); background: var(--black); color: var(--white); border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; margin-bottom: 16px; position: relative; }
+  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .submit-btn .spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; position: absolute; right: 16px; top: 50%; margin-top: -8px; }
+  .submit-btn.loading .spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Divider */
+  .auth-divider { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .auth-divider-line { flex: 1; height: 1px; background: var(--gray-100); }
+  .auth-divider-text { font-size: 12px; color: var(--gray-300); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--mono); }
+
+  /* Social login */
+  .social-btn { width: 100%; padding: 10px; font-size: 14px; font-weight: 500; font-family: var(--font); background: #fff; color: var(--black); border: 1px solid var(--gray-200); border-radius: 8px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+  .social-btn:hover { border-color: var(--black); background: var(--gray-50); }
+  .social-icon { width: 16px; height: 16px; }
+
+  /* Success state */
+  .auth-success { display: none; text-align: center; padding: 40px 0; }
+  .auth-success.visible { display: block; }
+  .success-dot { width: 48px; height: 48px; border-radius: 50%; background: var(--green-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .success-check { font-size: 24px; color: var(--green); }
+  .success-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .success-desc { font-size: 14px; color: var(--gray-400); line-height: 1.5; }
+
+  /* Password strength */
+  .pw-strength { display: flex; gap: 4px; margin-top: 8px; }
+  .pw-bar { flex: 1; height: 3px; border-radius: 2px; background: var(--gray-100); transition: background 0.2s; }
+
+  .form-footer { text-align: center; font-size: 13px; color: var(--gray-400); }
+  .form-footer a { color: var(--black); font-weight: 500; transition: opacity 0.15s; }
+  .form-footer a:hover { opacity: 0.7; }
+
+  /* Footer */
+  .site-footer { display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; border-top: 1px solid var(--gray-100); }
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .footer-logo-text { font-size: 13px; font-weight: 500; color: var(--gray-400); }
+  .footer-copy { font-size: 12px; color: var(--gray-300); }
+
+  @media (max-width: 768px) {
+    .nav { padding: 0 20px; }
+    .site-footer { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">Signal</span>
+  </a>
+  <a href="index.html" class="nav-back">&larr; Back to home</a>
+</nav>
+
+<main class="login-page">
+  <div class="auth-container">
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Log in</button>
+      <button class="auth-tab" data-tab="signup">Create account</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="auth-form active" id="form-login" novalidate>
+      <div class="form-title">Welcome back</div>
+      <div class="form-sub">Log in to your Signal dashboard.</div>
+
+      <div class="social-btn" id="google-login">
+        <svg class="social-icon" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </div>
+
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <span class="auth-divider-text">or</span>
+        <div class="auth-divider-line"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="login-email">Email</label>
+        <input class="field-input" id="login-email" type="email" placeholder="you@brokerage.com" autocomplete="email" />
+        <div class="field-error" id="login-email-error">Please enter a valid email address.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="login-password">Password</label>
+        <input class="field-input" id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" />
+        <div class="field-error" id="login-password-error">Password is required.</div>
+      </div>
+
+      <div class="field-row">
+        <label class="field-check"><input type="checkbox" checked /> Remember me</label>
+        <a href="#" class="field-forgot">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="submit-btn" id="login-btn">Log in <span class="spinner"></span></button>
+
+      <div class="form-footer">
+        Don't have an account? <a href="#" id="switch-to-signup">Start free trial</a>
+      </div>
+    </form>
+
+    <!-- Signup Form -->
+    <form class="auth-form" id="form-signup" novalidate>
+      <div class="form-title">Start your free trial</div>
+      <div class="form-sub">14 days of full Pro access. No credit card required.</div>
+
+      <div class="social-btn" id="google-signup">
+        <svg class="social-icon" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </div>
+
+      <div class="auth-divider">
+        <div class="auth-divider-line"></div>
+        <span class="auth-divider-text">or</span>
+        <div class="auth-divider-line"></div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-name">Full name</label>
+        <input class="field-input" id="signup-name" type="text" placeholder="Jane Smith" autocomplete="name" />
+        <div class="field-error" id="signup-name-error">Name is required.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-email">Work email</label>
+        <input class="field-input" id="signup-email" type="email" placeholder="jane@brokerage.com" autocomplete="email" />
+        <div class="field-error" id="signup-email-error">Please enter a valid work email address.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-brokerage">Brokerage name</label>
+        <input class="field-input" id="signup-brokerage" type="text" placeholder="Acme Realty" />
+        <div class="field-error" id="signup-brokerage-error">Brokerage name is required.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="signup-password">Password</label>
+        <input class="field-input" id="signup-password" type="password" placeholder="At least 8 characters" autocomplete="new-password" />
+        <div class="pw-strength">
+          <div class="pw-bar" id="pw1"></div>
+          <div class="pw-bar" id="pw2"></div>
+          <div class="pw-bar" id="pw3"></div>
+          <div class="pw-bar" id="pw4"></div>
+        </div>
+        <div class="field-error" id="signup-password-error">Password must be at least 8 characters.</div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="signup-btn">Create account <span class="spinner"></span></button>
+
+      <div class="form-footer">
+        Already have an account? <a href="#" id="switch-to-login">Log in</a>
+      </div>
+    </form>
+
+    <!-- Success state -->
+    <div class="auth-success" id="auth-success">
+      <div class="success-dot"><span class="success-check">&#10003;</span></div>
+      <div class="success-title" id="success-title">You're in</div>
+      <div class="success-desc" id="success-desc">Redirecting to your dashboard...</div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-logo">
+    <div class="footer-logo-dot"></div>
+    <span class="footer-logo-text">Signal</span>
+  </div>
+  <span class="footer-copy">&copy; 2026 Signal Technologies, Inc.</span>
+</footer>
+
+<script>
+  // ——— Tab switching ———
+  const tabs = document.querySelectorAll('.auth-tab');
+  const forms = document.querySelectorAll('.auth-form');
+
+  function switchTab(target) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+    forms.forEach(f => f.classList.toggle('active', f.id === 'form-' + target));
+    document.getElementById('auth-success').classList.remove('visible');
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  document.getElementById('switch-to-signup').addEventListener('click', e => { e.preventDefault(); switchTab('signup'); });
+  document.getElementById('switch-to-login').addEventListener('click', e => { e.preventDefault(); switchTab('login'); });
+
+  // ——— Validation helpers ———
+  function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+  function showError(inputId, errorId) {
+    document.getElementById(inputId).classList.add('error');
+    document.getElementById(errorId).classList.add('visible');
+  }
+
+  function clearErrors(form) {
+    form.querySelectorAll('.field-input').forEach(i => i.classList.remove('error'));
+    form.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
+  }
+
+  // ——— Password strength ———
+  const pwInput = document.getElementById('signup-password');
+  const bars = [document.getElementById('pw1'), document.getElementById('pw2'), document.getElementById('pw3'), document.getElementById('pw4')];
+
+  pwInput.addEventListener('input', () => {
+    const v = pwInput.value;
+    let strength = 0;
+    if (v.length >= 8) strength++;
+    if (/[A-Z]/.test(v)) strength++;
+    if (/[0-9]/.test(v)) strength++;
+    if (/[^A-Za-z0-9]/.test(v)) strength++;
+
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+    bars.forEach((b, i) => {
+      b.style.background = i < strength ? colors[Math.min(strength - 1, 3)] : 'var(--gray-100)';
+    });
+  });
+
+  // ——— Login submit ———
+  document.getElementById('form-login').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors(this);
+
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-password').value;
+    let valid = true;
+
+    if (!isValidEmail(email)) { showError('login-email', 'login-email-error'); valid = false; }
+    if (!pass) { showError('login-password', 'login-password-error'); valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('login-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      this.style.display = 'none';
+      document.querySelector('.auth-tabs').style.display = 'none';
+      const success = document.getElementById('auth-success');
+      document.getElementById('success-title').textContent = 'Welcome back';
+      document.getElementById('success-desc').textContent = 'Redirecting to your dashboard...';
+      success.classList.add('visible');
+    }, 1500);
+  });
+
+  // ——— Signup submit ———
+  document.getElementById('form-signup').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors(this);
+
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const brokerage = document.getElementById('signup-brokerage').value.trim();
+    const pass = document.getElementById('signup-password').value;
+    let valid = true;
+
+    if (!name) { showError('signup-name', 'signup-name-error'); valid = false; }
+    if (!isValidEmail(email)) { showError('signup-email', 'signup-email-error'); valid = false; }
+    if (!brokerage) { showError('signup-brokerage', 'signup-brokerage-error'); valid = false; }
+    if (pass.length < 8) { showError('signup-password', 'signup-password-error'); valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('signup-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      this.style.display = 'none';
+      document.querySelector('.auth-tabs').style.display = 'none';
+      const success = document.getElementById('auth-success');
+      document.getElementById('success-title').textContent = 'Account created';
+      document.getElementById('success-desc').textContent = 'Welcome to Signal! Check your email to verify your account.';
+      success.classList.add('visible');
+    }, 1500);
+  });
+</script>
+</body>
+</html>
