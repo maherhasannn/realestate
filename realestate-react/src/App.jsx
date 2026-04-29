@@ -28,16 +28,16 @@ export default function App() {
     document.documentElement.style.overflow = '';
 
     function onPageHide() {
-      if (!window.__mapScrollLocked) document.documentElement.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
 
     function onPageShow(e) {
-      if (!window.__mapScrollLocked) document.documentElement.style.overflow = '';
+      document.documentElement.style.overflow = '';
       if (e.persisted) location.reload();
     }
 
     function onVisibilityChange() {
-      if (!document.hidden && !window.__mapScrollLocked) {
+      if (!document.hidden) {
         document.documentElement.style.overflow = '';
       }
     }

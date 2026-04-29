@@ -60,6 +60,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
   const clickCursorAddedRef = useRef(false);
   const heatmapAddedRef = useRef(false);
   const keepaliveRef = useRef(null);
+  const lockScrollYRef = useRef(null);
   const stateRef = useRef({
     lastProgress: -1,
     lastPhase: '',
@@ -95,8 +96,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     setTimeout(() => {
       state.scrollLocked = false;
-      window.__mapScrollLocked = false;
-      document.documentElement.style.overflow = '';
+      lockScrollYRef.current = null;
 
       map.jumpTo({ center: HOME.center, zoom: HOME.zoom, pitch: HOME.pitch, bearing: HOME.bearing });
 
@@ -537,14 +537,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
       if (progress >= 0.92 && !state.scrollLocked) {
         state.scrollLocked = true;
-        window.__mapScrollLocked = true;
-        document.documentElement.style.overflow = 'hidden';
-        // Keep WebGL context alive while idle in locked state
-        if (!keepaliveRef.current) {
-          keepaliveRef.current = setInterval(() => {
-            if (mapRef.current) mapRef.current.triggerRepaint();
-          }, 4000);
-        }
+        lockScrollYRef.current = window.scrollY;
       }
 
       // Camera
@@ -584,16 +577,18 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       });
     }
 
-    function onVisibilityChange() {
-      if (document.visibilityState === 'visible' && stateRef.current.scrollLocked) {
-        document.documentElement.style.overflow = 'hidden';
+    // Non-throttled scroll clamp — snaps scroll back to lock position every frame
+    // so Safari keeps firing scroll events (page stays "active") but user can't leave
+    function onScrollClamp() {
+      if (stateRef.current.scrollLocked && lockScrollYRef.current !== null) {
+        window.scrollTo(0, lockScrollYRef.current);
       }
     }
 
     function initScrollDrive() {
       window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('scroll', onScrollClamp);
       window.addEventListener('resize', () => { stateRef.current.lastCameraKey = ''; onScroll(); }, { passive: true });
-      document.addEventListener('visibilitychange', onVisibilityChange);
       onScroll();
     }
 
@@ -605,7 +600,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('scroll', onScrollClamp);
       if (keepaliveRef.current) clearInterval(keepaliveRef.current);
       map.remove();
     };
