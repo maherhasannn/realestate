@@ -1229,7 +1229,7 @@ button { font-family: var(--font); }
 
 @keyframes cursorLoop {
   0% {
-    transform: translate(14px, -16px);
+    transform: translate(-14px, 16px);
     opacity: 0;
   }
   18% {
@@ -1250,11 +1250,11 @@ button { font-family: var(--font); }
     opacity: 1;
   }
   88% {
-    transform: translate(14px, -16px);
+    transform: translate(-14px, 16px);
     opacity: 0;
   }
   100% {
-    transform: translate(14px, -16px);
+    transform: translate(-14px, 16px);
     opacity: 0;
   }
 }
