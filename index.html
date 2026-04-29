@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Signal — See tomorrow's listings today</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -215,15 +217,7 @@
   .hero-ctas {
     display: flex;
     gap: 12px;
-    margin-bottom: 72px;
     animation: fadeUp 0.8s ease 0.2s forwards;
-  }
-
-  .hero-dashboard {
-    animation: fadeUp 0.8s ease 0.3s forwards;
-    display: flex;
-    justify-content: center;
-    width: 100%;
   }
 
   /* ——— Dashboard Preview ——— */
@@ -890,6 +884,282 @@
     color: var(--gray-300);
   }
 
+  /* ——— Interactive Map ——— */
+  .map-section {
+    padding: 0 24px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .map-container {
+    width: 100%;
+    max-width: 960px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--gray-100);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 24px 68px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    background: var(--gray-50);
+  }
+
+  .map-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .map-header-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .map-header-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--black);
+  }
+
+  .map-header-status {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--gray-400);
+  }
+
+  .map-gl-wrap {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
+  }
+
+  .map-gl-wrap .mapboxgl-canvas {
+    outline: none;
+  }
+
+  /* Hide Mapbox default attribution */
+  .map-gl-wrap .mapboxgl-ctrl-bottom-left,
+  .map-gl-wrap .mapboxgl-ctrl-bottom-right {
+    display: none;
+  }
+
+  /* Zoom controls */
+  .map-gl-wrap .mapboxgl-ctrl-group {
+    border-radius: 8px;
+    border: 1px solid var(--gray-100);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .map-gl-wrap .mapboxgl-ctrl-group button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #fff;
+  }
+
+  .map-gl-wrap .mapboxgl-ctrl-group button:hover {
+    background: var(--gray-50);
+  }
+
+  .map-gl-wrap .mapboxgl-ctrl-group button + button {
+    border-top: 1px solid var(--gray-100);
+  }
+
+  /* Overlay that fades out to reveal map */
+  .map-cover {
+    position: absolute;
+    inset: 0;
+    background: var(--gray-50);
+    z-index: 2;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+  }
+
+  .map-cover.hidden {
+    opacity: 0;
+  }
+
+  /* Map marker dots */
+  .map-marker {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: scale(0);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+  }
+
+  .map-marker.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .map-marker.hidden-fly {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.4s ease;
+  }
+
+  .map-marker.focused {
+    transform: scale(1.6);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25), 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+
+  .map-marker:hover {
+    transform: scale(1.4);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 5;
+  }
+
+  .map-marker.high { background: var(--green); }
+  .map-marker.mid  { background: var(--gray-500); }
+  .map-marker.low  { background: var(--gray-300); }
+
+  /* Show more button */
+  .map-show-more {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    transition: opacity 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .map-show-more:hover {
+    opacity: 0.85;
+    transform: translateX(-50%) scale(1.04);
+  }
+
+  .map-show-more.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(8px);
+  }
+
+  .map-show-more-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  /* Ping ring animation */
+  .map-marker-ping {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border-radius: 50%;
+    border: 2px solid var(--green);
+    opacity: 0;
+    pointer-events: none;
+    animation: mapPing 0.8s ease-out forwards;
+  }
+
+  @keyframes mapPing {
+    0%   { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(3.5); opacity: 0; }
+  }
+
+  /* Mapbox popup overrides */
+  .mapboxgl-popup {
+    z-index: 10;
+    max-width: none !important;
+  }
+
+  .mapboxgl-popup-content {
+    background: #fff;
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    min-width: 200px;
+    font-family: var(--font);
+  }
+
+  .mapboxgl-popup-tip {
+    border-top-color: #fff;
+  }
+
+  .mapboxgl-popup-close-button {
+    font-size: 16px;
+    color: var(--gray-300);
+    padding: 4px 8px;
+  }
+
+  .map-popup-address {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .map-popup-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 4px;
+  }
+
+  .map-popup-row .lbl { font-family: var(--mono); text-transform: uppercase; font-size: 10px; letter-spacing: 0.04em; color: var(--gray-300); }
+  .map-popup-row .val { font-family: var(--mono); font-weight: 500; color: var(--black); }
+
+  .map-popup-score-bar {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--gray-100);
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .map-popup-score-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .map-popup-click-hint {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--gray-300);
+    margin-top: 8px;
+    text-align: center;
+  }
+
   /* ——— Responsive ——— */
   @media (max-width: 768px) {
     .nav {
@@ -968,6 +1238,25 @@
     .site-footer {
       padding: 24px 20px;
     }
+
+    .map-gl-wrap {
+      height: 360px;
+    }
+
+    .map-marker {
+      width: 12px;
+      height: 12px;
+    }
+
+    .map-show-more {
+      font-size: 12px;
+      padding: 7px 16px;
+    }
+
+    .mapboxgl-popup-content {
+      min-width: 160px;
+      padding: 10px 12px;
+    }
   }
 </style>
 </head>
@@ -1005,11 +1294,29 @@
     <button class="btn-primary-lg">Start free trial</button>
     <button class="btn-secondary-lg">See how it works</button>
   </div>
+</section>
 
-  <!-- Dashboard Preview -->
-  <div class="hero-dashboard">
-    <div class="dashboard" id="dashboard"></div>
+<!-- ——— Interactive Map ——— -->
+<section class="map-section">
+  <div class="map-container" id="signal-map">
+    <div class="map-header">
+      <div class="map-header-left">
+        <div class="map-header-dot"></div>
+        <span class="map-header-label">LA Westside · Signal Map</span>
+      </div>
+      <span class="map-header-status" id="map-status">Waiting...</span>
+    </div>
+    <div class="map-gl-wrap">
+      <div id="map-gl" style="width:100%;height:100%"></div>
+      <div class="map-cover" id="map-cover"></div>
+      <button class="map-show-more hidden" id="map-show-more"><span class="map-show-more-dot"></span>Show all signals</button>
+    </div>
   </div>
+</section>
+
+<!-- ——— Dashboard Preview ——— -->
+<section class="map-section" style="padding-top:0">
+  <div class="dashboard" id="dashboard" style="max-width:960px;width:100%"></div>
 </section>
 
 <!-- ——— Stats ——— -->
@@ -1507,8 +1814,413 @@ window.addEventListener('scroll', () => {
     });
   }
 
+  // ——— Expose public API for map integration ———
+  function highlightSeller(id) {
+    activeTab = 'pipeline';
+    activeFilter = 'all';
+    searchQuery = '';
+    expandedRow = id;
+    // Find which page this seller is on
+    const filtered = getFiltered();
+    const idx = filtered.findIndex(s => s.id === id);
+    if (idx >= 0) currentPage = Math.floor(idx / pageSize);
+    render();
+    const dashboard = document.getElementById('dashboard');
+    if (dashboard) dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Briefly highlight the row
+    setTimeout(() => {
+      const row = document.querySelector(`.dashboard-row[data-id="${id}"]`);
+      if (row) {
+        row.style.transition = 'background 0.3s';
+        row.style.background = 'var(--green-bg-strong)';
+        setTimeout(() => { row.style.background = ''; }, 1200);
+      }
+    }, 400);
+  }
+
+  window.SignalDashboard = { highlightSeller, sellers };
+
   // Initial render
   render();
+})();
+
+// ═══════════════════════════════════════════
+// MAP ENGINE — Mapbox GL
+// ═══════════════════════════════════════════
+
+(function MapEngine() {
+  const statusEl = document.getElementById('map-status');
+  const coverEl = document.getElementById('map-cover');
+  const sellers = window.SignalDashboard ? window.SignalDashboard.sellers : [];
+
+  function fmt(v) {
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
+    if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
+    return '$' + v;
+  }
+
+  function scoreColor(s) {
+    return s >= 90 ? '#22c55e' : s >= 85 ? '#525252' : '#a3a3a3';
+  }
+
+  function scoreCls(s) {
+    return s >= 90 ? 'high' : s >= 85 ? 'mid' : 'low';
+  }
+
+  // ——— Real LA coordinates for each seller ———
+  const sellerCoords = {
+    1:  [-118.5198, 34.0389],  // 1847 Sunset Blvd, Pacific Palisades
+    2:  [-118.4970, 34.0115],  // 3201 Ocean Ave, Santa Monica
+    3:  [-118.4050, 34.0716],  // 445 N Camden Dr, Beverly Hills
+    4:  [-118.4730, 34.0548],  // 912 Wilshire Blvd, Brentwood
+    5:  [-118.3780, 34.1090],  // 2100 Laurel Canyon, Hollywood Hills
+    6:  [-118.4910, 34.0620],  // 780 Mandeville Cyn, Brentwood
+    7:  [-118.4240, 34.0880],  // 1520 Benedict Cyn, Beverly Hills
+    8:  [-118.5260, 34.0410],  // 330 Palisades Dr, Pacific Palisades
+    9:  [-118.7380, 34.0310],  // 6601 Zumirez Dr, Malibu
+    10: [-118.4280, 34.0750],  // 412 S Mapleton Dr, Holmby Hills
+    11: [-118.4440, 34.0910],  // 1044 Stradella Rd, Bel Air
+    12: [-118.3580, 34.1120],  // 2834 Durand Dr, Hollywood Hills
+    13: [-118.3980, 34.0780],  // 701 N Elm Dr, Beverly Hills
+    14: [-118.6820, 34.0340],  // 18 Malibu Colony Rd, Malibu
+    15: [-118.6400, 34.0420],  // 3900 Carbon Canyon, Malibu
+  };
+
+  // ——— Mapbox setup ———
+  mapboxgl.accessToken = 'YOUR_MAPBOX_PUBLIC_TOKEN';
+
+  const HOME_CENTER = [-118.48, 34.055];
+  const HOME_ZOOM = 10.8;
+  const HOME_PITCH = 0;
+  const HOME_BEARING = 0;
+
+  const map = new mapboxgl.Map({
+    container: 'map-gl',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: HOME_CENTER,
+    zoom: HOME_ZOOM,
+    pitch: HOME_PITCH,
+    bearing: HOME_BEARING,
+    attributionControl: false,
+    fadeDuration: 0,
+    maxZoom: 17,
+    minZoom: 9,
+  });
+
+  // Add zoom controls
+  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+  // Allow scroll zoom and drag pan, disable rotation by default
+  map.dragRotate.disable();
+  map.keyboard.disable();
+  map.touchZoomRotate.disableRotation();
+
+  // Add 3D terrain + buildings once style loads
+  map.on('style.load', () => {
+    map.addSource('mapbox-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14,
+    });
+    map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+
+    // 3D buildings layer
+    const layers = map.getStyle().layers;
+    const labelLayerId = layers.find(l => l.type === 'symbol' && l.layout['text-field']);
+    map.addLayer({
+      id: '3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 13,
+      paint: {
+        'fill-extrusion-color': '#e0e0e0',
+        'fill-extrusion-height': ['get', 'height'],
+        'fill-extrusion-base': ['get', 'min_height'],
+        'fill-extrusion-opacity': 0.5,
+      },
+    }, labelLayerId ? labelLayerId.id : undefined);
+  });
+
+  // ——— State ———
+  let focusedId = null;       // seller id currently focused (3D fly)
+  let flyResetTimer = null;
+  let activePopup = null;
+  const INITIAL_COUNT = 3;    // dots shown on first load
+  let allRevealed = false;
+  const showMoreBtn = document.getElementById('map-show-more');
+
+  // ——— Build markers (not yet added to map) ———
+  const markers = [];
+
+  // Sort sellers by score descending so top 3 show first
+  const sellersByScore = [...sellers].sort((a, b) => b.score - a.score);
+
+  sellersByScore.forEach(s => {
+    const coords = sellerCoords[s.id];
+    if (!coords) return;
+
+    const el = document.createElement('div');
+    el.className = 'map-marker ' + scoreCls(s.score);
+    el.dataset.sellerId = s.id;
+
+    const sc = scoreColor(s.score);
+    const popupHTML = `
+      <div class="map-popup-address">${s.address}</div>
+      <div class="map-popup-row"><span class="lbl">Market</span><span class="val">${s.city}</span></div>
+      <div class="map-popup-row"><span class="lbl">Score</span><span class="val" style="color:${sc}">${s.score}</span></div>
+      <div class="map-popup-score-bar"><div class="map-popup-score-fill" style="width:${s.score}%;background:${sc}"></div></div>
+      <div class="map-popup-row"><span class="lbl">Est. Value</span><span class="val">${fmt(s.est)}</span></div>
+      <div class="map-popup-row"><span class="lbl">Signal</span><span class="val">${s.trigger}</span></div>
+      <div class="map-popup-row"><span class="lbl">Days</span><span class="val">${s.days}d</span></div>
+      <div class="map-popup-click-hint">Click to view in dashboard</div>
+    `;
+
+    const popup = new mapboxgl.Popup({ offset: 16, closeButton: true, closeOnClick: false, maxWidth: '240px' })
+      .setHTML(popupHTML);
+
+    const marker = new mapboxgl.Marker({ element: el })
+      .setLngLat(coords)
+      .setPopup(popup);
+
+    markers.push({ marker, el, seller: s, popup, coords, addedToMap: false });
+  });
+
+  // ——— Helpers: hide/show other markers during fly ———
+  function hideOtherMarkers(keepId) {
+    markers.forEach(m => {
+      if (m.seller.id !== keepId && m.addedToMap) {
+        m.el.classList.add('hidden-fly');
+      }
+    });
+  }
+
+  function showVisibleMarkers() {
+    const visibleMarkers = markers.filter(m => m.addedToMap);
+    visibleMarkers.forEach((m, i) => {
+      setTimeout(() => {
+        m.el.classList.remove('hidden-fly');
+      }, i * 50);
+    });
+  }
+
+  function addPing(el) {
+    const ping = document.createElement('div');
+    ping.className = 'map-marker-ping';
+    el.style.position = 'relative';
+    el.appendChild(ping);
+    setTimeout(() => ping.remove(), 900);
+  }
+
+  // ——— Focus lock: fly in to 3D ———
+  function focusMarker(id) {
+    if (focusedId === id) return;  // already focused here
+
+    // Cancel any pending reset
+    if (flyResetTimer) { clearTimeout(flyResetTimer); flyResetTimer = null; }
+
+    const m = markers.find(x => x.seller.id === id);
+    if (!m) return;
+
+    focusedId = id;
+
+    // Close any open popup
+    if (activePopup) { activePopup.remove(); activePopup = null; }
+
+    // Hide other markers
+    hideOtherMarkers(id);
+
+    // Mark focused marker
+    m.el.classList.add('focused');
+
+    // Fly to 3D
+    map.flyTo({
+      center: m.coords,
+      zoom: 15.2,
+      pitch: 60,
+      bearing: -20,
+      speed: 1.6,
+      curve: 1,
+      essential: true,
+    });
+
+    map.once('moveend', () => {
+      // Only show popup if we're still focused on this marker
+      if (focusedId === id) {
+        if (!m.popup.isOpen()) m.marker.togglePopup();
+        activePopup = m.popup;
+      }
+    });
+  }
+
+  function unfocus() {
+    if (!focusedId) return;
+
+    const m = markers.find(x => x.seller.id === focusedId);
+
+    // Close popup
+    if (activePopup) { activePopup.remove(); activePopup = null; }
+
+    // Remove focused class
+    if (m) m.el.classList.remove('focused');
+
+    focusedId = null;
+
+    // Fly home
+    map.flyTo({
+      center: HOME_CENTER,
+      zoom: HOME_ZOOM,
+      pitch: HOME_PITCH,
+      bearing: HOME_BEARING,
+      speed: 1.2,
+      curve: 1,
+      essential: true,
+    });
+
+    // Once home, re-show all markers with stagger
+    map.once('moveend', () => {
+      if (!focusedId) showVisibleMarkers();
+    });
+  }
+
+  function scheduleUnfocus() {
+    if (flyResetTimer) clearTimeout(flyResetTimer);
+    flyResetTimer = setTimeout(() => {
+      flyResetTimer = null;
+      unfocus();
+    }, 500);
+  }
+
+  function cancelUnfocus() {
+    if (flyResetTimer) { clearTimeout(flyResetTimer); flyResetTimer = null; }
+  }
+
+  // ——— Attach events to each marker ———
+  markers.forEach(m => {
+    m.el.addEventListener('mouseenter', () => {
+      cancelUnfocus();
+      focusMarker(m.seller.id);
+    });
+
+    m.el.addEventListener('mouseleave', () => {
+      scheduleUnfocus();
+    });
+
+    m.el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cancelUnfocus();
+      if (activePopup) { activePopup.remove(); activePopup = null; }
+      focusedId = null;
+      m.el.classList.remove('focused');
+      // Reset to 2D
+      map.flyTo({ center: HOME_CENTER, zoom: HOME_ZOOM, pitch: HOME_PITCH, bearing: HOME_BEARING, speed: 2, essential: true });
+      map.once('moveend', () => showVisibleMarkers());
+      if (window.SignalDashboard && window.SignalDashboard.highlightSeller) {
+        window.SignalDashboard.highlightSeller(m.seller.id);
+      }
+    });
+
+    // Keep focus alive when hovering popup
+    m.popup.on('open', () => {
+      const popupEl = m.popup.getElement();
+      if (popupEl) {
+        popupEl.addEventListener('mouseenter', cancelUnfocus);
+        popupEl.addEventListener('mouseleave', scheduleUnfocus);
+      }
+    });
+  });
+
+  // ——— Show More button ———
+  if (showMoreBtn) {
+    showMoreBtn.addEventListener('click', () => {
+      showMoreBtn.classList.add('hidden');
+      allRevealed = true;
+      const remaining = markers.filter(m => !m.addedToMap);
+      let count = markers.filter(m => m.addedToMap).length;
+      const total = markers.length;
+      statusEl.textContent = `Scanning... ${count} of ${total} signals`;
+
+      remaining.forEach((m, i) => {
+        setTimeout(() => {
+          m.marker.addTo(map);
+          m.addedToMap = true;
+          requestAnimationFrame(() => {
+            m.el.classList.add('visible');
+            addPing(m.el);
+          });
+          count++;
+          statusEl.textContent = `Scanning... ${count} of ${total} signals`;
+          if (count === total) {
+            setTimeout(() => { statusEl.textContent = `${total} signals found`; }, 300);
+          }
+        }, i * 140);
+      });
+    });
+  }
+
+  // ——— Scroll-triggered animation: show first 3 ———
+  let animated = false;
+
+  function runAnimation() {
+    if (animated) return;
+    animated = true;
+
+    statusEl.textContent = 'Scanning...';
+
+    // Reveal the map
+    if (coverEl) coverEl.classList.add('hidden');
+
+    // Show first INITIAL_COUNT markers
+    const initial = markers.slice(0, INITIAL_COUNT);
+    let dotCount = 0;
+
+    setTimeout(() => {
+      initial.forEach((m, i) => {
+        setTimeout(() => {
+          m.marker.addTo(map);
+          m.addedToMap = true;
+          requestAnimationFrame(() => {
+            m.el.classList.add('visible');
+            addPing(m.el);
+          });
+          dotCount++;
+          statusEl.textContent = `Scanning... ${dotCount} of ${sellers.length} signals`;
+          if (dotCount === INITIAL_COUNT) {
+            setTimeout(() => {
+              statusEl.textContent = `${INITIAL_COUNT} of ${sellers.length} signals`;
+              // Show the "Show all" button
+              if (showMoreBtn) {
+                showMoreBtn.textContent = '';
+                const dot = document.createElement('span');
+                dot.className = 'map-show-more-dot';
+                showMoreBtn.appendChild(dot);
+                showMoreBtn.appendChild(document.createTextNode(`Show all ${sellers.length} signals`));
+                showMoreBtn.classList.remove('hidden');
+              }
+            }, 300);
+          }
+        }, i * 200);
+      });
+    }, 600);
+  }
+
+  // IntersectionObserver
+  const mapSection = document.getElementById('signal-map');
+  if (mapSection) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (map.loaded()) runAnimation();
+          else map.on('load', runAnimation);
+          observer.unobserve(mapSection);
+        }
+      });
+    }, { threshold: 0.2 });
+    observer.observe(mapSection);
+  }
+
 })();
 </script>
 
