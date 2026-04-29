@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Hero() {
   return (
     <section className="hero">
@@ -13,8 +15,8 @@ export default function Hero() {
       </p>
 
       <div className="hero-ctas">
-        <button className="btn-primary-lg">Start free trial</button>
-        <button className="btn-secondary-lg">See how it works</button>
+        <Link to="/login" className="btn-primary-lg">Start free trial</Link>
+        <Link to="/product" className="btn-secondary-lg">See how it works</Link>
       </div>
     </section>
   );

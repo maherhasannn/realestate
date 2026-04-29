@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function Nav() {
+export default function Nav({ activePage }) {
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function onScroll() {
@@ -13,16 +15,16 @@ export default function Nav() {
 
   return (
     <nav className={`nav${scrolled ? ' scrolled' : ''}`}>
-      <a href="index.html" className="nav-logo" style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link to="/" className="nav-logo" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="nav-logo-dot"></div>
         <span className="nav-logo-text">Signal</span>
-      </a>
+      </Link>
       <div className="nav-links">
-        <a href="product.html" className="nav-link nav-link-desktop">Product</a>
-        <a href="pricing.html" className="nav-link nav-link-desktop">Pricing</a>
-        <a href="docs.html" className="nav-link nav-link-desktop">Docs</a>
-        <a href="login.html" className="nav-link">Log in</a>
-        <button className="btn-primary" onClick={() => { location.href = 'login.html'; }}>Start free trial</button>
+        <Link to="/product" className={`nav-link nav-link-desktop${activePage === 'product' ? ' active' : ''}`}>Product</Link>
+        <Link to="/pricing" className={`nav-link nav-link-desktop${activePage === 'pricing' ? ' active' : ''}`}>Pricing</Link>
+        <Link to="/docs" className={`nav-link nav-link-desktop${activePage === 'docs' ? ' active' : ''}`}>Docs</Link>
+        <Link to="/login" className="nav-link">Log in</Link>
+        <button className="btn-primary" onClick={() => navigate('/login')}>Start free trial</button>
       </div>
     </nav>
   );

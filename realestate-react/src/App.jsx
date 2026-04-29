@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { sellers } from './data/sellers';
 import Nav from './components/Nav';
 import Hero from './components/Hero';
@@ -9,10 +10,14 @@ import Features from './components/Features';
 import Quote from './components/Quote';
 import Cta from './components/Cta';
 import Footer from './components/Footer';
+import ProductPage from './pages/ProductPage';
+import PricingPage from './pages/PricingPage';
+import LoginPage from './pages/LoginPage';
+import DocsPage from './pages/DocsPage';
 
 const FEATURED_ID = 7;
 
-export default function App() {
+function HomePage() {
   const dashboardRef = useRef(null);
 
   const handleAddToPipeline = useCallback(() => {
@@ -65,5 +70,17 @@ export default function App() {
       <Cta />
       <Footer />
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/product" element={<ProductPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/docs" element={<DocsPage />} />
+    </Routes>
   );
 }
