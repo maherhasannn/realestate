@@ -370,6 +370,21 @@ button { font-family: var(--font); }
   transition: background 0.12s;
 }
 
+.dashboard-row.row-enter {
+  animation: rowSlideIn 0.35s ease both;
+}
+
+@keyframes rowSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .dashboard-row:hover {
   background: var(--green-bg);
 }

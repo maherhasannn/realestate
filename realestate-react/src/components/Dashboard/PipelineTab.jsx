@@ -1,3 +1,5 @@
+import { useRef, useEffect } from 'react';
+
 function fmt$(v) {
   if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
   if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
@@ -27,6 +29,21 @@ export default function PipelineTab({
   const filtered = sellers;
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageItems = filtered.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+  // Track previous page row IDs to detect entering/staying rows
+  const prevIdsRef = useRef(new Set());
+  const enteringIdsRef = useRef(new Set());
+
+  const currentIds = new Set(pageItems.map(s => s.id));
+  const newEntering = new Set();
+  currentIds.forEach(id => {
+    if (!prevIdsRef.current.has(id)) newEntering.add(id);
+  });
+  enteringIdsRef.current = newEntering;
+
+  useEffect(() => {
+    prevIdsRef.current = currentIds;
+  });
 
   const arrow = (col) =>
     sortCol === col ? (sortDir === 'asc' ? <span className="sort-arrow">{'\u25B2'}</span> : <span className="sort-arrow">{'\u25BC'}</span>) : null;
@@ -82,14 +99,16 @@ export default function PipelineTab({
             No sellers match your filters.
           </div>
         )}
-        {pageItems.map(s => {
+        {pageItems.map((s, i) => {
           const isExpanded = expandedRow === s.id;
+          const isEntering = enteringIdsRef.current.has(s.id);
           const equity = Math.max(0, s.est - (parseFloat(s.mortgageBalance.replace(/[^0-9.]/g, '')) * 1000000 || 0));
           return (
             <div key={s.id}>
               <div
-                className={`dashboard-row${isExpanded ? ' expanded' : ''}`}
+                className={`dashboard-row${isExpanded ? ' expanded' : ''}${isEntering ? ' row-enter' : ''}`}
                 data-id={s.id}
+                style={isEntering ? { animationDelay: `${i * 40}ms` } : undefined}
                 onClick={() => onRowClick(s.id)}
               >
                 <span className="address">{s.address}</span>
