@@ -135,10 +135,12 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       runway.style.overflow = 'hidden';
       runway.style.padding = '0';
 
-      // Scroll to the dashboard (next section after the map) instead of the top
+      // Scroll to the dashboard (next section after the map), centered on screen
       const nextSection = runway.nextElementSibling;
       if (nextSection) {
-        nextSection.scrollIntoView({ behavior: 'instant', block: 'start' });
+        const rect = nextSection.getBoundingClientRect();
+        const scrollY = window.scrollY + rect.top - (window.innerHeight - rect.height) / 2;
+        window.scrollTo(0, Math.max(0, scrollY));
       }
     }, 1000);
 
