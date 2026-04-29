@@ -59,6 +59,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
   const clickCursorMarkerRef = useRef(null);
   const clickCursorAddedRef = useRef(false);
   const heatmapAddedRef = useRef(false);
+  const keepaliveRef = useRef(null);
   const stateRef = useRef({
     lastProgress: -1,
     lastPhase: '',
@@ -87,6 +88,10 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     if (!overlay || !map) return;
 
     overlay.classList.add('active');
+    if (keepaliveRef.current) {
+      clearInterval(keepaliveRef.current);
+      keepaliveRef.current = null;
+    }
 
     setTimeout(() => {
       state.scrollLocked = false;
@@ -173,6 +178,15 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     map.touchZoomRotate.disable();
 
     mapRef.current = map;
+
+    // Recover from WebGL context loss
+    const canvas = map.getCanvas();
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+    });
+    canvas.addEventListener('webglcontextrestored', () => {
+      map.triggerRepaint();
+    });
 
     map.on('style.load', () => {
       map.addSource('mapbox-dem', {
@@ -521,6 +535,12 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       if (progress >= 0.92 && !state.scrollLocked) {
         state.scrollLocked = true;
         document.documentElement.style.overflow = 'hidden';
+        // Keep WebGL context alive while idle in locked state
+        if (!keepaliveRef.current) {
+          keepaliveRef.current = setInterval(() => {
+            if (mapRef.current) mapRef.current.triggerRepaint();
+          }, 4000);
+        }
       }
 
       // Camera
@@ -582,6 +602,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     return () => {
       window.removeEventListener('scroll', onScroll);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (keepaliveRef.current) clearInterval(keepaliveRef.current);
       map.remove();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
