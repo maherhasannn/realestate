@@ -1147,12 +1147,99 @@ button { font-family: var(--font); }
   box-shadow: 0 0 12px var(--green);
 }
 
-.map-property-hint {
-  text-align: center;
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--gray-300);
-  margin-top: 8px;
+/* Animated click cursor on CTA */
+.map-cta-wrap {
+  position: relative;
+}
+
+.map-click-cursor {
+  position: absolute;
+  bottom: 6px;
+  right: 24px;
+  width: 28px;
+  height: 28px;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+.map-click-cursor.visible {
+  opacity: 1;
+  animation: cursorLoop 2.4s ease-in-out infinite 0.5s;
+}
+
+.map-click-cursor svg {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Ripple that appears on the "click" moment */
+.map-click-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.35);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.map-click-cursor.visible .map-click-ripple {
+  animation: cursorRipple 2.4s ease-out infinite 0.5s;
+}
+
+@keyframes cursorLoop {
+  0% {
+    transform: translate(20px, -20px);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  35% {
+    transform: translate(0, 0) scale(1);
+  }
+  42% {
+    transform: translate(0, 0) scale(0.85);
+  }
+  50% {
+    transform: translate(0, 0) scale(1);
+  }
+  70% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  90% {
+    transform: translate(20px, -20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(20px, -20px);
+    opacity: 0;
+  }
+}
+
+@keyframes cursorRipple {
+  0%, 35% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  42% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  60% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Scroll hint pill */
@@ -1179,18 +1266,6 @@ button { font-family: var(--font); }
 
 .map-scroll-hint.visible {
   opacity: 1;
-}
-
-.map-scroll-hint.lock-prompt {
-  bottom: 24px;
-  left: 24px;
-  transform: none;
-  font-size: 13px;
-  padding: 10px 20px;
-  color: var(--black);
-  background: rgba(255, 255, 255, 0.95);
-  border-color: var(--gray-200);
-  animation: none;
 }
 
 @keyframes scrollHintBob {
@@ -1315,57 +1390,6 @@ button { font-family: var(--font); }
   100% { transform: scale(3.5); opacity: 0; }
 }
 
-/* Floating label on featured building */
-.map-building-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  background: var(--black);
-  color: var(--white);
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.2s;
-  pointer-events: none;
-}
-
-.map-building-label.visible {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.map-building-label:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 0 8px rgba(34,197,94,0.15);
-}
-
-.map-building-label-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: pulse 1.5s infinite;
-}
-
-.map-building-label-arrow {
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  margin-left: -5px;
-  width: 10px;
-  height: 10px;
-  background: var(--black);
-  transform: rotate(45deg);
-}
 
 /* --- Responsive --- */
 @media (max-width: 768px) {

@@ -55,9 +55,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
-  const buildingLabelElRef = useRef(null);
-  const buildingLabelMarkerRef = useRef(null);
-  const buildingLabelAddedRef = useRef(false);
+  const clickCursorRef = useRef(null);
   const heatmapAddedRef = useRef(false);
   const stateRef = useRef({
     lastProgress: -1,
@@ -83,8 +81,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     const glWrap = glWrapRef.current;
     const sticky = stickyRef.current;
     const container = containerRef.current;
-    const buildingLabelEl = buildingLabelElRef.current;
-    const buildingLabelMarker = buildingLabelMarkerRef.current;
 
     if (!overlay || !map) return;
 
@@ -104,12 +100,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         }
       });
       state.visibleMarkerCount = 0;
-
-      if (buildingLabelEl) buildingLabelEl.classList.remove('visible');
-      if (buildingLabelMarker) {
-        buildingLabelMarker.remove();
-        buildingLabelAddedRef.current = false;
-      }
 
       if (heatmapAddedRef.current) {
         try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch (e) { /* ignore */ }
@@ -314,25 +304,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     });
     markersRef.current = markerArr;
 
-    // Building label
-    const buildingLabelEl = document.createElement('div');
-    buildingLabelEl.className = 'map-building-label';
-    buildingLabelEl.innerHTML = '<span class="map-building-label-dot"></span>Add to Signal Pipeline<span class="map-building-label-arrow"></span>';
-    buildingLabelElRef.current = buildingLabelEl;
-
-    const buildingLabelMarker = new mapboxgl.Marker({
-      element: buildingLabelEl,
-      anchor: 'bottom',
-      offset: [0, -28],
-    }).setLngLat(sellerCoords[FEATURED_ID]);
-    buildingLabelMarkerRef.current = buildingLabelMarker;
-
-    // Wire building label click
-    buildingLabelEl.addEventListener('click', () => {
-      // triggerAddToPipeline is called via the current ref
-      triggerAddToPipelineRef.current();
-    });
-
     // Scroll-driven update
     function getScrollProgress() {
       if (!runwayRef.current) return 0;
@@ -391,9 +362,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         scrollHint.textContent = 'Scroll to explore \u2193';
         scrollHint.classList.remove('lock-prompt');
         scrollHint.classList.add('visible');
-      } else if (progress >= 0.88) {
-        scrollHint.textContent = 'Click "Add to Signal Pipeline" to continue \u2191';
-        scrollHint.classList.add('visible', 'lock-prompt');
       } else {
         scrollHint.classList.remove('visible', 'lock-prompt');
       }
@@ -496,25 +464,17 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         }
       });
 
-      // Phase 4: Property card + building label + scroll lock
+      // Phase 4: Property card + click cursor + scroll lock
       if (progress >= 0.85) {
         propertyCard.classList.add('visible');
-        if (!buildingLabelAddedRef.current && buildingLabelMarkerRef.current) {
-          buildingLabelMarkerRef.current.addTo(map);
-          buildingLabelAddedRef.current = true;
-          requestAnimationFrame(() => buildingLabelElRef.current?.classList.add('visible'));
+        const cursor = clickCursorRef.current;
+        if (cursor && !cursor.classList.contains('visible')) {
+          cursor.classList.add('visible');
         }
       } else {
         propertyCard.classList.remove('visible');
-        if (buildingLabelAddedRef.current && buildingLabelElRef.current) {
-          buildingLabelElRef.current.classList.remove('visible');
-          setTimeout(() => {
-            if (!buildingLabelElRef.current?.classList.contains('visible') && buildingLabelMarkerRef.current) {
-              buildingLabelMarkerRef.current.remove();
-              buildingLabelAddedRef.current = false;
-            }
-          }, 400);
-        }
+        const cursor = clickCursorRef.current;
+        if (cursor) cursor.classList.remove('visible');
       }
 
       if (progress >= 0.92 && !state.scrollLocked) {
@@ -629,11 +589,18 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
                   <div className="map-property-stat-value">Lisa Park</div>
                 </div>
               </div>
-              <button className="map-property-cta" onClick={triggerAddToPipeline}>
-                <span className="map-property-cta-dot"></span>
-                Add to Signal Pipeline
-              </button>
-              <div className="map-property-hint">{'\u2191'} Click to continue</div>
+              <div className="map-cta-wrap">
+                <button className="map-property-cta" onClick={triggerAddToPipeline}>
+                  <span className="map-property-cta-dot"></span>
+                  Add to Signal Pipeline
+                </button>
+                <div className="map-click-cursor" ref={clickCursorRef}>
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5 3l14 8.5L12 14l-2.5 7L5 3z" fill="#0A0A0A" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                  <div className="map-click-ripple"></div>
+                </div>
+              </div>
             </div>
             <div className="map-scroll-hint" ref={scrollHintRef}>Scroll to explore {'\u2193'}</div>
             <div className="map-transition-overlay" ref={overlayRef}>
