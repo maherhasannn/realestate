@@ -1190,6 +1190,18 @@
     opacity: 1;
   }
 
+  .map-scroll-hint.lock-prompt {
+    bottom: 24px;
+    left: 24px;
+    transform: none;
+    font-size: 13px;
+    padding: 10px 20px;
+    color: var(--black);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--gray-200);
+    animation: none;
+  }
+
   @keyframes scrollHintBob {
     0%, 100% { transform: translateX(-50%) translateY(0); }
     50% { transform: translateX(-50%) translateY(4px); }
@@ -1203,12 +1215,60 @@
     z-index: 10;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.6s ease;
     border-radius: 0 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
   }
 
   .map-transition-overlay.active {
     opacity: 1;
+  }
+
+  .map-transition-status {
+    font-size: 13px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--gray-400);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s;
+  }
+
+  .map-transition-overlay.active .map-transition-status {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .map-transition-check {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green-bg-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.3s ease 0.15s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s;
+  }
+
+  .map-transition-overlay.active .map-transition-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .map-transition-check svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--green);
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   /* Map marker dots */
@@ -1262,6 +1322,58 @@
   @keyframes mapPing {
     0%   { transform: scale(1); opacity: 0.6; }
     100% { transform: scale(3.5); opacity: 0; }
+  }
+
+  /* Floating label on featured building */
+  .map-building-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.2s;
+    pointer-events: none;
+  }
+
+  .map-building-label.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .map-building-label:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 0 8px rgba(34,197,94,0.15);
+  }
+
+  .map-building-label-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 1.5s infinite;
+  }
+
+  .map-building-label-arrow {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    margin-left: -5px;
+    width: 10px;
+    height: 10px;
+    background: var(--black);
+    transform: rotate(45deg);
   }
 
   /* ——— Responsive ——— */
@@ -1466,7 +1578,10 @@
           <div class="map-property-hint">↑ Click to continue</div>
         </div>
         <div class="map-scroll-hint" id="map-scroll-hint">Scroll to explore ↓</div>
-        <div class="map-transition-overlay" id="map-transition-overlay"></div>
+        <div class="map-transition-overlay" id="map-transition-overlay">
+          <div class="map-transition-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="map-transition-status">Adding to Signal Pipeline...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1577,9 +1692,22 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
 document.documentElement.style.overflow = '';
 
-// Reset if restored from bfcache (back/forward navigation)
+// Clean up before page is cached (prevents blank page on back/forward)
+window.addEventListener('pagehide', function() {
+  document.documentElement.style.overflow = '';
+});
+
+// Full reset if restored from bfcache
 window.addEventListener('pageshow', function(e) {
+  document.documentElement.style.overflow = '';
   if (e.persisted) location.reload();
+});
+
+// Also handle tab switching
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+    document.documentElement.style.overflow = '';
+  }
 });
 
 // ——— Nav scroll effect ———
@@ -1995,15 +2123,25 @@ window.addEventListener('scroll', () => {
     render();
     const dashboard = document.getElementById('dashboard');
     if (dashboard) dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // Briefly highlight the row
+    // Animate the row highlight
     setTimeout(() => {
       const row = document.querySelector(`.dashboard-row[data-id="${id}"]`);
       if (row) {
-        row.style.transition = 'background 0.3s';
+        row.style.transition = 'background 0.5s ease, box-shadow 0.5s ease, border-color 0.3s ease';
         row.style.background = 'var(--green-bg-strong)';
-        setTimeout(() => { row.style.background = ''; }, 1200);
+        row.style.boxShadow = '0 0 0 1px rgba(34,197,94,0.2), 0 4px 16px rgba(34,197,94,0.08)';
+        row.style.borderLeft = '3px solid var(--green)';
+        row.style.borderRadius = '8px';
+        // Fade out gently
+        setTimeout(() => {
+          row.style.transition = 'background 1s ease, box-shadow 1s ease, border-color 1s ease';
+          row.style.background = '';
+          row.style.boxShadow = '';
+          row.style.borderLeft = '';
+          row.style.borderRadius = '';
+        }, 2000);
       }
-    }, 400);
+    }, 500);
   }
 
   window.SignalDashboard = { highlightSeller, sellers };
@@ -2147,6 +2285,53 @@ window.addEventListener('scroll', () => {
       },
     }, labelLayerId ? labelLayerId.id : undefined);
 
+    // Highlighted building at featured property
+    const fc = sellerCoords[FEATURED_ID];
+    const dLng = 0.00025, dLat = 0.00013; // ~40m x ~30m footprint
+    map.addSource('featured-building', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [fc[0] - dLng, fc[1] - dLat],
+            [fc[0] + dLng, fc[1] - dLat],
+            [fc[0] + dLng, fc[1] + dLat],
+            [fc[0] - dLng, fc[1] + dLat],
+            [fc[0] - dLng, fc[1] - dLat],
+          ]],
+        },
+        properties: {},
+      },
+    });
+    // Green glow base (slightly larger, lower)
+    map.addLayer({
+      id: 'featured-building-glow',
+      type: 'fill-extrusion',
+      source: 'featured-building',
+      minzoom: 13,
+      paint: {
+        'fill-extrusion-color': '#22c55e',
+        'fill-extrusion-height': 8,
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.25,
+      },
+    });
+    // Green building on top
+    map.addLayer({
+      id: 'featured-building-highlight',
+      type: 'fill-extrusion',
+      source: 'featured-building',
+      minzoom: 13,
+      paint: {
+        'fill-extrusion-color': '#22c55e',
+        'fill-extrusion-height': 12,
+        'fill-extrusion-base': 0,
+        'fill-extrusion-opacity': 0.7,
+      },
+    });
+
     // Heatmap layer from seller GeoJSON
     setupHeatmapLayer();
   });
@@ -2222,6 +2407,17 @@ window.addEventListener('scroll', () => {
     markers.push({ marker, el, seller: s, coords, addedToMap: false });
   });
 
+  // ——— Floating label on featured building ———
+  const buildingLabelEl = document.createElement('div');
+  buildingLabelEl.className = 'map-building-label';
+  buildingLabelEl.innerHTML = '<span class="map-building-label-dot"></span>Add to Signal Pipeline<span class="map-building-label-arrow"></span>';
+  const buildingLabelMarker = new mapboxgl.Marker({
+    element: buildingLabelEl,
+    anchor: 'bottom',
+    offset: [0, -28],
+  }).setLngLat(sellerCoords[FEATURED_ID]);
+  let buildingLabelAdded = false;
+
   function addPing(el) {
     const ping = document.createElement('div');
     ping.className = 'map-marker-ping';
@@ -2284,11 +2480,16 @@ window.addEventListener('scroll', () => {
       progressTrack.style.opacity = '0';
     }
 
-    // Scroll hint: visible early, fades after markers start
+    // Scroll hint: visible early, reappears at lock with CTA prompt
     if (progress > 0.03 && progress < 0.20) {
+      scrollHint.textContent = 'Scroll to explore ↓';
+      scrollHint.classList.remove('lock-prompt');
       scrollHint.classList.add('visible');
+    } else if (progress >= 0.88) {
+      scrollHint.textContent = 'Click "Add to Signal Pipeline" to continue ↑';
+      scrollHint.classList.add('visible', 'lock-prompt');
     } else {
-      scrollHint.classList.remove('visible');
+      scrollHint.classList.remove('visible', 'lock-prompt');
     }
 
     // Phase 1: 0.10–0.25 — Heatmap overview
@@ -2393,11 +2594,25 @@ window.addEventListener('scroll', () => {
       }
     });
 
-    // Phase 4: 0.85–1.00 — Property card + scroll lock
+    // Phase 4: 0.85–1.00 — Property card + building label + scroll lock
     if (progress >= 0.85) {
       propertyCard.classList.add('visible');
+      if (!buildingLabelAdded) {
+        buildingLabelMarker.addTo(map);
+        buildingLabelAdded = true;
+        requestAnimationFrame(() => buildingLabelEl.classList.add('visible'));
+      }
     } else {
       propertyCard.classList.remove('visible');
+      if (buildingLabelAdded) {
+        buildingLabelEl.classList.remove('visible');
+        setTimeout(() => {
+          if (!buildingLabelEl.classList.contains('visible')) {
+            buildingLabelMarker.remove();
+            buildingLabelAdded = false;
+          }
+        }, 400);
+      }
     }
 
     // Lock scroll when card is fully in view
@@ -2452,80 +2667,80 @@ window.addEventListener('scroll', () => {
     });
   }
 
-  // ——— CTA click handler ———
-  if (ctaBtn) {
-    ctaBtn.addEventListener('click', () => {
-      // 1. Fade overlay
-      transitionOverlay.classList.add('active');
+  // ——— CTA action (shared by card button + building label) ———
+  function triggerAddToPipeline() {
+    // 1. Fade overlay with status message
+    transitionOverlay.classList.add('active');
 
-      // 2. After fade, unlock scroll, scroll to dashboard and reset map
+    // 2. Let the overlay + status animate in (checkmark + "Adding to pipeline...")
+    setTimeout(() => {
+      // Silently reset map while overlay is opaque
+      scrollLocked = false;
+      document.documentElement.style.overflow = '';
+
+      map.jumpTo({ center: HOME.center, zoom: HOME.zoom, pitch: HOME.pitch, bearing: HOME.bearing });
+
+      markers.forEach(m => {
+        if (m.addedToMap) {
+          m.el.classList.remove('visible', 'faded', 'featured');
+          m.marker.remove();
+          m.addedToMap = false;
+        }
+      });
+      visibleMarkerCount = 0;
+      buildingLabelEl.classList.remove('visible');
+      buildingLabelMarker.remove();
+      buildingLabelAdded = false;
+
+      if (heatmapAdded) {
+        try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch(e) {}
+      }
+
+      coverEl.style.opacity = '1';
+      propertyCard.classList.remove('visible');
+      phaseLabel.classList.remove('visible');
+      progressTrack.style.opacity = '0';
+      scrollHint.classList.remove('visible', 'lock-prompt');
+      glWrapEl.style.height = '';
+      stickyEl.style.maxWidth = '';
+      containerEl.style.borderRadius = '';
+      containerEl.style.boxShadow = '';
+      lastProgress = -1;
+      lastCameraKey = '';
+      lastPhase = '';
+
+      // Collapse runway
+      const scrollBefore = window.scrollY;
+      const runwayH = runwayEl.offsetHeight;
+      runwayEl.style.height = '0';
+      runwayEl.style.overflow = 'hidden';
+      runwayEl.style.padding = '0';
+      window.scrollTo(0, Math.max(0, scrollBefore - runwayH));
+    }, 1000);
+
+    // 3. After status holds briefly, scroll to dashboard and fade out overlay
+    setTimeout(() => {
+      const dashboard = document.getElementById('dashboard');
+      if (dashboard) {
+        dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // 4. Fade overlay out, then highlight the row
       setTimeout(() => {
-        // Unlock scroll
-        scrollLocked = false;
-        document.documentElement.style.overflow = '';
+        transitionOverlay.classList.remove('active');
 
-        // Reset map to home view
-        map.jumpTo({
-          center: HOME.center,
-          zoom: HOME.zoom,
-          pitch: HOME.pitch,
-          bearing: HOME.bearing,
-        });
-
-        // Remove all markers
-        markers.forEach(m => {
-          if (m.addedToMap) {
-            m.el.classList.remove('visible', 'faded', 'featured');
-            m.marker.remove();
-            m.addedToMap = false;
-          }
-        });
-        visibleMarkerCount = 0;
-
-        // Reset heatmap
-        if (heatmapAdded) {
-          try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch(e) {}
-        }
-
-        // Reset cover + expansion
-        coverEl.style.opacity = '1';
-        propertyCard.classList.remove('visible');
-        phaseLabel.classList.remove('visible');
-        progressTrack.style.opacity = '0';
-        glWrapEl.style.height = '';
-        stickyEl.style.maxWidth = '';
-        containerEl.style.borderRadius = '';
-        containerEl.style.boxShadow = '';
-        lastProgress = -1;
-        lastCameraKey = '';
-        lastPhase = '';
-
-        // Collapse runway so scrolling up shows hero, not map
-        const scrollBefore = window.scrollY;
-        const runwayH = runwayEl.offsetHeight;
-        runwayEl.style.height = '0';
-        runwayEl.style.overflow = 'hidden';
-        runwayEl.style.padding = '0';
-        // Adjust scroll to keep viewport stable during collapse
-        window.scrollTo(0, Math.max(0, scrollBefore - runwayH));
-
-        // Scroll to dashboard
-        const dashboard = document.getElementById('dashboard');
-        if (dashboard) {
-          dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        // Highlight seller #7 in dashboard
         setTimeout(() => {
           if (window.SignalDashboard && window.SignalDashboard.highlightSeller) {
             window.SignalDashboard.highlightSeller(FEATURED_ID);
           }
-          // Remove overlay after transition
-          transitionOverlay.classList.remove('active');
-        }, 600);
+        }, 400);
       }, 500);
-    });
+    }, 1400);
   }
+
+  // Wire both CTA buttons
+  if (ctaBtn) ctaBtn.addEventListener('click', triggerAddToPipeline);
+  buildingLabelEl.addEventListener('click', triggerAddToPipeline);
 
   // ——— Init: start listening once map loads ———
   function initScrollDrive() {
