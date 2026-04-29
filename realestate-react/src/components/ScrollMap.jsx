@@ -127,12 +127,15 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       state.lastCameraKey = '';
       state.lastPhase = '';
 
-      const scrollBefore = window.scrollY;
-      const runwayH = runway.offsetHeight;
       runway.style.height = '0';
       runway.style.overflow = 'hidden';
       runway.style.padding = '0';
-      window.scrollTo(0, Math.max(0, scrollBefore - runwayH));
+
+      // Scroll to the dashboard (next section after the map) instead of the top
+      const nextSection = runway.nextElementSibling;
+      if (nextSection) {
+        nextSection.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }
     }, 1000);
 
     setTimeout(() => {
