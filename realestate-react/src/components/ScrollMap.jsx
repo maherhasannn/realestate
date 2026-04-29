@@ -519,7 +519,9 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
           clickCursorAddedRef.current = true;
           requestAnimationFrame(() => clickCursorElRef.current?.classList.add('visible'));
         }
-      } else {
+      } else if (!state.scrollLocked) {
+        // Only remove cursor/card if we haven't locked yet — a resize after
+        // locking can briefly shift progress below 0.85 and would kill them.
         propertyCard.classList.remove('visible');
         if (clickCursorAddedRef.current && clickCursorElRef.current) {
           clickCursorElRef.current.classList.remove('visible');
