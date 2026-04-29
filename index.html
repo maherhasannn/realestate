@@ -40,7 +40,7 @@
     color: var(--black);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   body { overflow-x: hidden; }
@@ -884,22 +884,29 @@
     color: var(--gray-300);
   }
 
-  /* ——— Interactive Map ——— */
-  .map-section {
-    padding: 0 24px 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* ——— Interactive Map — Scroll-driven ——— */
+  .map-scroll-runway {
+    height: 400vh;
+    position: relative;
+    padding: 0 24px;
+  }
+
+  .map-sticky {
+    position: sticky;
+    top: 80px;
+    max-width: 960px;
+    margin: 0 auto;
+    z-index: 10;
   }
 
   .map-container {
     width: 100%;
-    max-width: 960px;
     background: #fff;
     border-radius: 12px;
     border: 1px solid var(--gray-100);
     box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 24px 68px rgba(0,0,0,0.06);
     overflow: hidden;
+    will-change: border-radius, box-shadow;
   }
 
   .map-header {
@@ -949,47 +956,259 @@
     outline: none;
   }
 
-  /* Hide Mapbox default attribution */
+  /* Hide Mapbox default controls */
   .map-gl-wrap .mapboxgl-ctrl-bottom-left,
-  .map-gl-wrap .mapboxgl-ctrl-bottom-right {
+  .map-gl-wrap .mapboxgl-ctrl-bottom-right,
+  .map-gl-wrap .mapboxgl-ctrl-top-right,
+  .map-gl-wrap .mapboxgl-ctrl-top-left {
     display: none;
-  }
-
-  /* Zoom controls */
-  .map-gl-wrap .mapboxgl-ctrl-group {
-    border-radius: 8px;
-    border: 1px solid var(--gray-100);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    overflow: hidden;
-  }
-
-  .map-gl-wrap .mapboxgl-ctrl-group button {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #fff;
-  }
-
-  .map-gl-wrap .mapboxgl-ctrl-group button:hover {
-    background: var(--gray-50);
-  }
-
-  .map-gl-wrap .mapboxgl-ctrl-group button + button {
-    border-top: 1px solid var(--gray-100);
   }
 
   /* Overlay that fades out to reveal map */
   .map-cover {
     position: absolute;
     inset: 0;
-    background: var(--gray-50);
+    background: var(--gray-50) url('https://api.mapbox.com/styles/v1/mapbox/light-v11/static/-118.48,34.055,10.8/960x480@2x?access_token=YOUR_MAPBOX_PUBLIC_TOKEN') center / cover no-repeat;
     z-index: 2;
-    transition: opacity 0.8s ease;
     pointer-events: none;
   }
 
-  .map-cover.hidden {
+  /* Progress track at top of map */
+  .map-progress-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gray-100);
+    z-index: 5;
     opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .map-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--green);
+    border-radius: 0 2px 2px 0;
+    transition: none;
+  }
+
+  /* Floating phase label */
+  .map-phase-label {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 5;
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--green);
+    background: rgba(250, 250, 250, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--gray-100);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+
+  .map-phase-label.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Property info card overlay */
+  .map-property-card {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 5;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid var(--gray-100);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+
+  .map-property-card.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .map-property-badge {
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .map-property-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  .map-property-address {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 2px;
+  }
+
+  .map-property-city {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 14px;
+  }
+
+  .map-property-specs {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 14px;
+    font-family: var(--mono);
+  }
+
+  .map-property-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .map-property-stat {
+    background: var(--gray-50);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .map-property-stat-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-300);
+    margin-bottom: 3px;
+  }
+
+  .map-property-stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .map-property-cta {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .map-property-cta:hover { opacity: 0.8; }
+
+  .map-property-card.visible .map-property-cta {
+    animation: ctaPulse 2s ease-in-out infinite 0.4s;
+  }
+
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+  }
+
+  .map-property-cta-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  .map-property-card.visible .map-property-cta-dot {
+    animation: pulse 1.5s infinite;
+    box-shadow: 0 0 12px var(--green);
+  }
+
+  .map-property-hint {
+    text-align: center;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--gray-300);
+    margin-top: 8px;
+  }
+
+  /* Scroll hint pill */
+  .map-scroll-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--gray-400);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--gray-100);
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    animation: scrollHintBob 2s ease-in-out infinite;
+  }
+
+  .map-scroll-hint.visible {
+    opacity: 1;
+  }
+
+  @keyframes scrollHintBob {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(4px); }
+  }
+
+  /* Transition overlay */
+  .map-transition-overlay {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .map-transition-overlay.active {
+    opacity: 1;
   }
 
   /* Map marker dots */
@@ -997,12 +1216,12 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    cursor: pointer;
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     opacity: 0;
     transform: scale(0);
-    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+    pointer-events: none;
   }
 
   .map-marker.visible {
@@ -1010,69 +1229,20 @@
     transform: scale(1);
   }
 
-  .map-marker.hidden-fly {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: opacity 0.4s ease;
+  .map-marker.faded {
+    opacity: 0.2 !important;
+    transform: scale(0.7) !important;
   }
 
-  .map-marker.focused {
-    transform: scale(1.6);
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25), 0 2px 8px rgba(0,0,0,0.3);
+  .map-marker.featured {
+    transform: scale(1.8) !important;
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.3), 0 0 20px rgba(34, 197, 94, 0.15), 0 2px 8px rgba(0,0,0,0.3);
     z-index: 10;
-  }
-
-  .map-marker:hover {
-    transform: scale(1.4);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    z-index: 5;
   }
 
   .map-marker.high { background: var(--green); }
   .map-marker.mid  { background: var(--gray-500); }
   .map-marker.low  { background: var(--gray-300); }
-
-  /* Show more button */
-  .map-show-more {
-    position: absolute;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 5;
-    padding: 8px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: var(--font);
-    background: var(--black);
-    color: var(--white);
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-    transition: opacity 0.2s, transform 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .map-show-more:hover {
-    opacity: 0.85;
-    transform: translateX(-50%) scale(1.04);
-  }
-
-  .map-show-more.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(8px);
-  }
-
-  .map-show-more-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-  }
 
   /* Ping ring animation */
   .map-marker-ping {
@@ -1092,72 +1262,6 @@
   @keyframes mapPing {
     0%   { transform: scale(1); opacity: 0.6; }
     100% { transform: scale(3.5); opacity: 0; }
-  }
-
-  /* Mapbox popup overrides */
-  .mapboxgl-popup {
-    z-index: 10;
-    max-width: none !important;
-  }
-
-  .mapboxgl-popup-content {
-    background: #fff;
-    border: 1px solid var(--gray-100);
-    border-radius: 8px;
-    padding: 12px 14px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    min-width: 200px;
-    font-family: var(--font);
-  }
-
-  .mapboxgl-popup-tip {
-    border-top-color: #fff;
-  }
-
-  .mapboxgl-popup-close-button {
-    font-size: 16px;
-    color: var(--gray-300);
-    padding: 4px 8px;
-  }
-
-  .map-popup-address {
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 6px;
-  }
-
-  .map-popup-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--gray-400);
-    margin-top: 4px;
-  }
-
-  .map-popup-row .lbl { font-family: var(--mono); text-transform: uppercase; font-size: 10px; letter-spacing: 0.04em; color: var(--gray-300); }
-  .map-popup-row .val { font-family: var(--mono); font-weight: 500; color: var(--black); }
-
-  .map-popup-score-bar {
-    width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--gray-100);
-    margin-top: 8px;
-    overflow: hidden;
-  }
-
-  .map-popup-score-fill {
-    height: 100%;
-    border-radius: 2px;
-  }
-
-  .map-popup-click-hint {
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--gray-300);
-    margin-top: 8px;
-    text-align: center;
   }
 
   /* ——— Responsive ——— */
@@ -1239,6 +1343,14 @@
       padding: 24px 20px;
     }
 
+    .map-scroll-runway {
+      height: 250vh;
+    }
+
+    .map-sticky {
+      top: 70px;
+    }
+
     .map-gl-wrap {
       height: 360px;
     }
@@ -1248,14 +1360,21 @@
       height: 12px;
     }
 
-    .map-show-more {
-      font-size: 12px;
-      padding: 7px 16px;
+    .map-property-card {
+      width: calc(100% - 24px);
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
     }
 
-    .mapboxgl-popup-content {
-      min-width: 160px;
-      padding: 10px 12px;
+    .map-property-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .map-phase-label {
+      font-size: 11px;
+      padding: 5px 10px;
     }
   }
 </style>
@@ -1296,26 +1415,65 @@
   </div>
 </section>
 
-<!-- ——— Interactive Map ——— -->
-<section class="map-section">
-  <div class="map-container" id="signal-map">
-    <div class="map-header">
-      <div class="map-header-left">
-        <div class="map-header-dot"></div>
-        <span class="map-header-label">LA Westside · Signal Map</span>
+<!-- ——— Scroll-driven Map ——— -->
+<section class="map-scroll-runway" id="map-scroll-runway">
+  <div class="map-sticky" id="map-sticky">
+    <div class="map-container" id="signal-map">
+      <div class="map-header">
+        <div class="map-header-left">
+          <div class="map-header-dot"></div>
+          <span class="map-header-label">LA Westside · Signal Map</span>
+        </div>
+        <span class="map-header-status" id="map-status">Waiting...</span>
       </div>
-      <span class="map-header-status" id="map-status">Waiting...</span>
-    </div>
-    <div class="map-gl-wrap">
-      <div id="map-gl" style="width:100%;height:100%"></div>
-      <div class="map-cover" id="map-cover"></div>
-      <button class="map-show-more hidden" id="map-show-more"><span class="map-show-more-dot"></span>Show all signals</button>
+      <div class="map-gl-wrap">
+        <div id="map-gl" style="width:100%;height:100%"></div>
+        <div class="map-cover" id="map-cover"></div>
+        <div class="map-progress-track" id="map-progress-track">
+          <div class="map-progress-fill" id="map-progress-fill"></div>
+        </div>
+        <div class="map-phase-label" id="map-phase-label"></div>
+        <div class="map-property-card" id="map-property-card">
+          <div class="map-property-badge">
+            <div class="map-property-badge-dot"></div>
+            HIGHEST SIGNAL · SCORE 96
+          </div>
+          <div class="map-property-address">1520 Benedict Canyon</div>
+          <div class="map-property-city">Beverly Hills</div>
+          <div class="map-property-specs">7 bd · 7 ba · 8,100 sqft</div>
+          <div class="map-property-grid">
+            <div class="map-property-stat">
+              <div class="map-property-stat-label">Est. Value</div>
+              <div class="map-property-stat-value">$8.9M</div>
+            </div>
+            <div class="map-property-stat">
+              <div class="map-property-stat-label">Signal</div>
+              <div class="map-property-stat-value" style="color:var(--green)">Listed FSBO</div>
+            </div>
+            <div class="map-property-stat">
+              <div class="map-property-stat-label">Days</div>
+              <div class="map-property-stat-value">3d</div>
+            </div>
+            <div class="map-property-stat">
+              <div class="map-property-stat-label">Agent</div>
+              <div class="map-property-stat-value">Lisa Park</div>
+            </div>
+          </div>
+          <button class="map-property-cta" id="map-cta-btn">
+            <span class="map-property-cta-dot"></span>
+            Add to Signal Pipeline
+          </button>
+          <div class="map-property-hint">↑ Click to continue</div>
+        </div>
+        <div class="map-scroll-hint" id="map-scroll-hint">Scroll to explore ↓</div>
+        <div class="map-transition-overlay" id="map-transition-overlay"></div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ——— Dashboard Preview ——— -->
-<section class="map-section" style="padding-top:0">
+<section style="padding: 0 24px 80px; display: flex; flex-direction: column; align-items: center;">
   <div class="dashboard" id="dashboard" style="max-width:960px;width:100%"></div>
 </section>
 
@@ -1845,13 +2003,26 @@ window.addEventListener('scroll', () => {
 })();
 
 // ═══════════════════════════════════════════
-// MAP ENGINE — Mapbox GL
+// MAP ENGINE — Scroll-driven Mapbox GL
 // ═══════════════════════════════════════════
 
 (function MapEngine() {
   const statusEl = document.getElementById('map-status');
   const coverEl = document.getElementById('map-cover');
+  const runwayEl = document.getElementById('map-scroll-runway');
+  const progressTrack = document.getElementById('map-progress-track');
+  const progressFill = document.getElementById('map-progress-fill');
+  const phaseLabel = document.getElementById('map-phase-label');
+  const propertyCard = document.getElementById('map-property-card');
+  const scrollHint = document.getElementById('map-scroll-hint');
+  const ctaBtn = document.getElementById('map-cta-btn');
+  const transitionOverlay = document.getElementById('map-transition-overlay');
+  const stickyEl = document.getElementById('map-sticky');
+  const containerEl = document.getElementById('signal-map');
+  const glWrapEl = document.querySelector('.map-gl-wrap');
   const sellers = window.SignalDashboard ? window.SignalDashboard.sellers : [];
+
+  const FEATURED_ID = 7; // 1520 Benedict Canyon
 
   function fmt(v) {
     if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
@@ -1867,55 +2038,78 @@ window.addEventListener('scroll', () => {
     return s >= 90 ? 'high' : s >= 85 ? 'mid' : 'low';
   }
 
+  // ——— Interpolation helpers ———
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+  function subProgress(progress, start, end) {
+    if (progress <= start) return 0;
+    if (progress >= end) return 1;
+    return (progress - start) / (end - start);
+  }
+
   // ——— Real LA coordinates for each seller ———
   const sellerCoords = {
-    1:  [-118.5198, 34.0389],  // 1847 Sunset Blvd, Pacific Palisades
-    2:  [-118.4970, 34.0115],  // 3201 Ocean Ave, Santa Monica
-    3:  [-118.4050, 34.0716],  // 445 N Camden Dr, Beverly Hills
-    4:  [-118.4730, 34.0548],  // 912 Wilshire Blvd, Brentwood
-    5:  [-118.3780, 34.1090],  // 2100 Laurel Canyon, Hollywood Hills
-    6:  [-118.4910, 34.0620],  // 780 Mandeville Cyn, Brentwood
-    7:  [-118.4240, 34.0880],  // 1520 Benedict Cyn, Beverly Hills
-    8:  [-118.5260, 34.0410],  // 330 Palisades Dr, Pacific Palisades
-    9:  [-118.7380, 34.0310],  // 6601 Zumirez Dr, Malibu
-    10: [-118.4280, 34.0750],  // 412 S Mapleton Dr, Holmby Hills
-    11: [-118.4440, 34.0910],  // 1044 Stradella Rd, Bel Air
-    12: [-118.3580, 34.1120],  // 2834 Durand Dr, Hollywood Hills
-    13: [-118.3980, 34.0780],  // 701 N Elm Dr, Beverly Hills
-    14: [-118.6820, 34.0340],  // 18 Malibu Colony Rd, Malibu
-    15: [-118.6400, 34.0420],  // 3900 Carbon Canyon, Malibu
+    1:  [-118.5198, 34.0389],
+    2:  [-118.4970, 34.0115],
+    3:  [-118.4050, 34.0716],
+    4:  [-118.4730, 34.0548],
+    5:  [-118.3780, 34.1090],
+    6:  [-118.4910, 34.0620],
+    7:  [-118.4240, 34.0880],
+    8:  [-118.5260, 34.0410],
+    9:  [-118.7380, 34.0310],
+    10: [-118.4280, 34.0750],
+    11: [-118.4440, 34.0910],
+    12: [-118.3580, 34.1120],
+    13: [-118.3980, 34.0780],
+    14: [-118.6820, 34.0340],
+    15: [-118.6400, 34.0420],
   };
 
-  // ——— Mapbox setup ———
-  mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+  // ——— Camera keyframes ———
+  const HOME = { center: [-118.48, 34.055], zoom: 10.8, pitch: 0, bearing: 0 };
+  const MID  = { center: [-118.45, 34.065], zoom: 12.0, pitch: 15, bearing: -10 };
+  const FOCUSED = { center: sellerCoords[FEATURED_ID], zoom: 16.2, pitch: 62, bearing: -30 };
 
-  const HOME_CENTER = [-118.48, 34.055];
-  const HOME_ZOOM = 10.8;
-  const HOME_PITCH = 0;
-  const HOME_BEARING = 0;
+  function lerpCamera(a, b, t) {
+    const e = easeInOut(t);
+    return {
+      center: [lerp(a.center[0], b.center[0], e), lerp(a.center[1], b.center[1], e)],
+      zoom: lerp(a.zoom, b.zoom, e),
+      pitch: lerp(a.pitch, b.pitch, e),
+      bearing: lerp(a.bearing, b.bearing, e),
+    };
+  }
+
+  // ——— Mapbox setup ———
+  mapboxgl.accessToken = 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
   const map = new mapboxgl.Map({
     container: 'map-gl',
     style: 'mapbox://styles/mapbox/light-v11',
-    center: HOME_CENTER,
-    zoom: HOME_ZOOM,
-    pitch: HOME_PITCH,
-    bearing: HOME_BEARING,
+    center: HOME.center,
+    zoom: HOME.zoom,
+    pitch: HOME.pitch,
+    bearing: HOME.bearing,
     attributionControl: false,
     fadeDuration: 0,
     maxZoom: 17,
     minZoom: 9,
+    interactive: false,
   });
 
-  // Add zoom controls
-  map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-
-  // Allow scroll zoom and drag pan, disable rotation by default
+  // Disable all map interaction during scroll-driven phase
+  map.scrollZoom.disable();
+  map.boxZoom.disable();
+  map.dragPan.disable();
   map.dragRotate.disable();
   map.keyboard.disable();
-  map.touchZoomRotate.disableRotation();
+  map.doubleClickZoom.disable();
+  map.touchZoomRotate.disable();
 
   // Add 3D terrain + buildings once style loads
+  let heatmapAdded = false;
+
   map.on('style.load', () => {
     map.addSource('mapbox-dem', {
       type: 'raster-dem',
@@ -1942,23 +2136,69 @@ window.addEventListener('scroll', () => {
         'fill-extrusion-opacity': 0.5,
       },
     }, labelLayerId ? labelLayerId.id : undefined);
+
+    // Heatmap layer from seller GeoJSON
+    setupHeatmapLayer();
   });
 
-  // ——— State ———
-  let focusedId = null;       // seller id currently focused (3D fly)
-  let flyResetTimer = null;
-  let activePopup = null;
-  const INITIAL_COUNT = 3;    // dots shown on first load
-  let allRevealed = false;
-  const showMoreBtn = document.getElementById('map-show-more');
+  function setupHeatmapLayer() {
+    const features = sellers.map(s => {
+      const coords = sellerCoords[s.id];
+      if (!coords) return null;
+      return {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: coords },
+        properties: { score: s.score, est: s.est },
+      };
+    }).filter(Boolean);
 
-  // ——— Build markers (not yet added to map) ———
+    map.addSource('seller-heatmap', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features },
+    });
+
+    map.addLayer({
+      id: 'seller-heatmap-layer',
+      type: 'heatmap',
+      source: 'seller-heatmap',
+      paint: {
+        'heatmap-weight': ['interpolate', ['linear'], ['get', 'score'], 75, 0.3, 100, 1],
+        'heatmap-intensity': 0.6,
+        'heatmap-radius': 40,
+        'heatmap-color': [
+          'interpolate', ['linear'], ['heatmap-density'],
+          0, 'rgba(34,197,94,0)',
+          0.2, 'rgba(34,197,94,0.15)',
+          0.4, 'rgba(34,197,94,0.3)',
+          0.6, 'rgba(34,197,94,0.45)',
+          0.8, 'rgba(74,222,128,0.6)',
+          1, 'rgba(74,222,128,0.8)',
+        ],
+        'heatmap-opacity': 0,
+      },
+    }, '3d-buildings');
+
+    heatmapAdded = true;
+  }
+
+  // ——— Build markers ———
   const markers = [];
 
-  // Sort sellers by score descending so top 3 show first
-  const sellersByScore = [...sellers].sort((a, b) => b.score - a.score);
+  // Sort: peripheral first, featured last
+  const featuredSeller = sellers.find(s => s.id === FEATURED_ID);
+  const otherSellers = sellers.filter(s => s.id !== FEATURED_ID);
+  // Sort others by distance from featured (farthest first)
+  const fc = sellerCoords[FEATURED_ID];
+  otherSellers.sort((a, b) => {
+    const ca = sellerCoords[a.id], cb = sellerCoords[b.id];
+    if (!ca || !cb) return 0;
+    const da = Math.hypot(ca[0] - fc[0], ca[1] - fc[1]);
+    const db = Math.hypot(cb[0] - fc[0], cb[1] - fc[1]);
+    return db - da; // farthest first
+  });
+  const markersSorted = [...otherSellers, featuredSeller].filter(Boolean);
 
-  sellersByScore.forEach(s => {
+  markersSorted.forEach(s => {
     const coords = sellerCoords[s.id];
     if (!coords) return;
 
@@ -1966,45 +2206,11 @@ window.addEventListener('scroll', () => {
     el.className = 'map-marker ' + scoreCls(s.score);
     el.dataset.sellerId = s.id;
 
-    const sc = scoreColor(s.score);
-    const popupHTML = `
-      <div class="map-popup-address">${s.address}</div>
-      <div class="map-popup-row"><span class="lbl">Market</span><span class="val">${s.city}</span></div>
-      <div class="map-popup-row"><span class="lbl">Score</span><span class="val" style="color:${sc}">${s.score}</span></div>
-      <div class="map-popup-score-bar"><div class="map-popup-score-fill" style="width:${s.score}%;background:${sc}"></div></div>
-      <div class="map-popup-row"><span class="lbl">Est. Value</span><span class="val">${fmt(s.est)}</span></div>
-      <div class="map-popup-row"><span class="lbl">Signal</span><span class="val">${s.trigger}</span></div>
-      <div class="map-popup-row"><span class="lbl">Days</span><span class="val">${s.days}d</span></div>
-      <div class="map-popup-click-hint">Click to view in dashboard</div>
-    `;
-
-    const popup = new mapboxgl.Popup({ offset: 16, closeButton: true, closeOnClick: false, maxWidth: '240px' })
-      .setHTML(popupHTML);
-
     const marker = new mapboxgl.Marker({ element: el })
-      .setLngLat(coords)
-      .setPopup(popup);
+      .setLngLat(coords);
 
-    markers.push({ marker, el, seller: s, popup, coords, addedToMap: false });
+    markers.push({ marker, el, seller: s, coords, addedToMap: false });
   });
-
-  // ——— Helpers: hide/show other markers during fly ———
-  function hideOtherMarkers(keepId) {
-    markers.forEach(m => {
-      if (m.seller.id !== keepId && m.addedToMap) {
-        m.el.classList.add('hidden-fly');
-      }
-    });
-  }
-
-  function showVisibleMarkers() {
-    const visibleMarkers = markers.filter(m => m.addedToMap);
-    visibleMarkers.forEach((m, i) => {
-      setTimeout(() => {
-        m.el.classList.remove('hidden-fly');
-      }, i * 50);
-    });
-  }
 
   function addPing(el) {
     const ping = document.createElement('div');
@@ -2014,211 +2220,315 @@ window.addEventListener('scroll', () => {
     setTimeout(() => ping.remove(), 900);
   }
 
-  // ——— Focus lock: fly in to 3D ———
-  function focusMarker(id) {
-    if (focusedId === id) return;  // already focused here
+  // ——— Scroll progress ———
+  function getScrollProgress() {
+    if (!runwayEl) return 0;
+    const rect = runwayEl.getBoundingClientRect();
+    const viewH = window.innerHeight;
+    // Progress 0 when top of runway hits top of viewport
+    // Progress 1 when bottom of runway hits bottom of viewport
+    const scrollable = rect.height - viewH;
+    if (scrollable <= 0) return 0;
+    const scrolled = -rect.top;
+    return Math.max(0, Math.min(1, scrolled / scrollable));
+  }
 
-    // Cancel any pending reset
-    if (flyResetTimer) { clearTimeout(flyResetTimer); flyResetTimer = null; }
+  // ——— State tracking for dirty-check optimization ———
+  let lastProgress = -1;
+  let lastPhase = '';
+  let visibleMarkerCount = 0;
+  let lastCameraKey = '';
+  let scrollLocked = false;
 
-    const m = markers.find(x => x.seller.id === id);
-    if (!m) return;
+  // ——— Main scroll state machine ———
+  function updateMapFromScroll(progress) {
+    // Progress bar
+    progressFill.style.width = (progress * 100) + '%';
 
-    focusedId = id;
+    // ——— Map expansion (0.02 → 0.15) ———
+    const expandT = easeInOut(subProgress(progress, 0.02, 0.15));
+    if (expandT > 0) {
+      const baseH = window.innerWidth <= 768 ? 360 : 480;
+      const targetH = Math.max(baseH, window.innerHeight - 300);
+      glWrapEl.style.height = lerp(baseH, targetH, expandT) + 'px';
+      const targetW = Math.min(Math.max(960, window.innerWidth - 48), 1200);
+      stickyEl.style.maxWidth = lerp(960, targetW, expandT) + 'px';
+      containerEl.style.borderRadius = lerp(12, 8, expandT) + 'px';
+      containerEl.style.boxShadow = `0 1px 3px rgba(0,0,0,${lerp(0.04, 0, expandT)}), 0 24px 68px rgba(0,0,0,${lerp(0.06, 0.02, expandT)})`;
+      map.resize();
+    } else {
+      glWrapEl.style.height = '';
+      stickyEl.style.maxWidth = '';
+      containerEl.style.borderRadius = '';
+      containerEl.style.boxShadow = '';
+    }
 
-    // Close any open popup
-    if (activePopup) { activePopup.remove(); activePopup = null; }
+    // Phase 0: 0.00–0.10 — Fade in
+    const coverOpacity = 1 - subProgress(progress, 0.0, 0.10);
+    coverEl.style.opacity = coverOpacity;
 
-    // Hide other markers
-    hideOtherMarkers(id);
+    // Show progress track and scroll hint once started
+    if (progress > 0.02) {
+      progressTrack.style.opacity = '1';
+    } else {
+      progressTrack.style.opacity = '0';
+    }
 
-    // Mark focused marker
-    m.el.classList.add('focused');
+    // Scroll hint: visible early, fades after markers start
+    if (progress > 0.03 && progress < 0.20) {
+      scrollHint.classList.add('visible');
+    } else {
+      scrollHint.classList.remove('visible');
+    }
 
-    // Fly to 3D
-    map.flyTo({
-      center: m.coords,
-      zoom: 15.2,
-      pitch: 60,
-      bearing: -20,
-      speed: 1.6,
-      curve: 1,
-      essential: true,
-    });
+    // Phase 1: 0.10–0.25 — Heatmap overview
+    if (heatmapAdded) {
+      const heatOpacity = progress < 0.10 ? 0
+        : progress < 0.25 ? subProgress(progress, 0.10, 0.20)
+        : progress < 0.55 ? 1
+        : 1 - subProgress(progress, 0.55, 0.70);
+      try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', Math.max(0, Math.min(1, heatOpacity))); } catch(e) {}
+    }
 
-    map.once('moveend', () => {
-      // Only show popup if we're still focused on this marker
-      if (focusedId === id) {
-        if (!m.popup.isOpen()) m.marker.togglePopup();
-        activePopup = m.popup;
+    // Phase labels
+    let phaseTxt = '';
+    if (progress >= 0.10 && progress < 0.25) {
+      phaseTxt = 'Analyzing 47 data streams...';
+    } else if (progress >= 0.25 && progress < 0.55) {
+      phaseTxt = `Scanning... ${visibleMarkerCount} of ${sellers.length} signals`;
+    } else if (progress >= 0.55 && progress < 0.85) {
+      phaseTxt = 'Highest signal detected';
+    } else if (progress >= 0.85) {
+      phaseTxt = '';
+    }
+
+    if (phaseTxt !== lastPhase) {
+      lastPhase = phaseTxt;
+      phaseLabel.textContent = phaseTxt;
+      if (phaseTxt) {
+        phaseLabel.classList.add('visible');
+      } else {
+        phaseLabel.classList.remove('visible');
       }
-    });
-  }
+    }
 
-  function unfocus() {
-    if (!focusedId) return;
+    // Status bar text
+    if (progress < 0.10) {
+      statusEl.textContent = 'Waiting...';
+    } else if (progress < 0.25) {
+      statusEl.textContent = 'Analyzing...';
+    } else if (progress < 0.55) {
+      statusEl.textContent = `${visibleMarkerCount} of ${sellers.length} signals`;
+    } else if (progress < 0.85) {
+      statusEl.textContent = 'Signal locked';
+    } else {
+      statusEl.textContent = `${sellers.length} signals found`;
+    }
 
-    const m = markers.find(x => x.seller.id === focusedId);
+    // Phase 2: 0.25–0.55 — Markers ping in one by one
+    const markerProgress = subProgress(progress, 0.25, 0.55);
+    const targetMarkerCount = Math.floor(markerProgress * markers.length);
 
-    // Close popup
-    if (activePopup) { activePopup.remove(); activePopup = null; }
-
-    // Remove focused class
-    if (m) m.el.classList.remove('focused');
-
-    focusedId = null;
-
-    // Fly home
-    map.flyTo({
-      center: HOME_CENTER,
-      zoom: HOME_ZOOM,
-      pitch: HOME_PITCH,
-      bearing: HOME_BEARING,
-      speed: 1.2,
-      curve: 1,
-      essential: true,
-    });
-
-    // Once home, re-show all markers with stagger
-    map.once('moveend', () => {
-      if (!focusedId) showVisibleMarkers();
-    });
-  }
-
-  function scheduleUnfocus() {
-    if (flyResetTimer) clearTimeout(flyResetTimer);
-    flyResetTimer = setTimeout(() => {
-      flyResetTimer = null;
-      unfocus();
-    }, 500);
-  }
-
-  function cancelUnfocus() {
-    if (flyResetTimer) { clearTimeout(flyResetTimer); flyResetTimer = null; }
-  }
-
-  // ——— Attach events to each marker ———
-  markers.forEach(m => {
-    m.el.addEventListener('mouseenter', () => {
-      cancelUnfocus();
-      focusMarker(m.seller.id);
-    });
-
-    m.el.addEventListener('mouseleave', () => {
-      scheduleUnfocus();
-    });
-
-    m.el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      cancelUnfocus();
-      if (activePopup) { activePopup.remove(); activePopup = null; }
-      focusedId = null;
-      m.el.classList.remove('focused');
-      // Reset to 2D
-      map.flyTo({ center: HOME_CENTER, zoom: HOME_ZOOM, pitch: HOME_PITCH, bearing: HOME_BEARING, speed: 2, essential: true });
-      map.once('moveend', () => showVisibleMarkers());
-      if (window.SignalDashboard && window.SignalDashboard.highlightSeller) {
-        window.SignalDashboard.highlightSeller(m.seller.id);
-      }
-    });
-
-    // Keep focus alive when hovering popup
-    m.popup.on('open', () => {
-      const popupEl = m.popup.getElement();
-      if (popupEl) {
-        popupEl.addEventListener('mouseenter', cancelUnfocus);
-        popupEl.addEventListener('mouseleave', scheduleUnfocus);
-      }
-    });
-  });
-
-  // ——— Show More button ———
-  if (showMoreBtn) {
-    showMoreBtn.addEventListener('click', () => {
-      showMoreBtn.classList.add('hidden');
-      allRevealed = true;
-      const remaining = markers.filter(m => !m.addedToMap);
-      let count = markers.filter(m => m.addedToMap).length;
-      const total = markers.length;
-      statusEl.textContent = `Scanning... ${count} of ${total} signals`;
-
-      remaining.forEach((m, i) => {
-        setTimeout(() => {
+    // Add markers
+    if (targetMarkerCount > visibleMarkerCount) {
+      for (let i = visibleMarkerCount; i < targetMarkerCount && i < markers.length; i++) {
+        const m = markers[i];
+        if (!m.addedToMap) {
           m.marker.addTo(map);
           m.addedToMap = true;
           requestAnimationFrame(() => {
             m.el.classList.add('visible');
             addPing(m.el);
           });
-          count++;
-          statusEl.textContent = `Scanning... ${count} of ${total} signals`;
-          if (count === total) {
-            setTimeout(() => { statusEl.textContent = `${total} signals found`; }, 300);
-          }
-        }, i * 140);
-      });
-    });
-  }
-
-  // ——— Scroll-triggered animation: show first 3 ———
-  let animated = false;
-
-  function runAnimation() {
-    if (animated) return;
-    animated = true;
-
-    statusEl.textContent = 'Scanning...';
-
-    // Reveal the map
-    if (coverEl) coverEl.classList.add('hidden');
-
-    // Show first INITIAL_COUNT markers
-    const initial = markers.slice(0, INITIAL_COUNT);
-    let dotCount = 0;
-
-    setTimeout(() => {
-      initial.forEach((m, i) => {
-        setTimeout(() => {
-          m.marker.addTo(map);
-          m.addedToMap = true;
-          requestAnimationFrame(() => {
-            m.el.classList.add('visible');
-            addPing(m.el);
-          });
-          dotCount++;
-          statusEl.textContent = `Scanning... ${dotCount} of ${sellers.length} signals`;
-          if (dotCount === INITIAL_COUNT) {
-            setTimeout(() => {
-              statusEl.textContent = `${INITIAL_COUNT} of ${sellers.length} signals`;
-              // Show the "Show all" button
-              if (showMoreBtn) {
-                showMoreBtn.textContent = '';
-                const dot = document.createElement('span');
-                dot.className = 'map-show-more-dot';
-                showMoreBtn.appendChild(dot);
-                showMoreBtn.appendChild(document.createTextNode(`Show all ${sellers.length} signals`));
-                showMoreBtn.classList.remove('hidden');
-              }
-            }, 300);
-          }
-        }, i * 200);
-      });
-    }, 600);
-  }
-
-  // IntersectionObserver
-  const mapSection = document.getElementById('signal-map');
-  if (mapSection) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          if (map.loaded()) runAnimation();
-          else map.on('load', runAnimation);
-          observer.unobserve(mapSection);
         }
+      }
+      visibleMarkerCount = targetMarkerCount;
+    }
+
+    // Remove markers when scrolling back up
+    if (targetMarkerCount < visibleMarkerCount) {
+      for (let i = visibleMarkerCount - 1; i >= targetMarkerCount && i >= 0; i--) {
+        const m = markers[i];
+        if (m.addedToMap) {
+          m.el.classList.remove('visible', 'faded', 'featured');
+          setTimeout(() => {
+            if (!m.el.classList.contains('visible')) {
+              m.marker.remove();
+              m.addedToMap = false;
+            }
+          }, 350);
+        }
+      }
+      visibleMarkerCount = Math.max(0, targetMarkerCount);
+    }
+
+    // Phase 3: 0.55–0.85 — Fly to 3D, fade non-featured markers
+    const flyProgress = subProgress(progress, 0.55, 0.85);
+    const fadeProgress = subProgress(progress, 0.55, 0.70);
+
+    markers.forEach(m => {
+      if (!m.addedToMap) return;
+      if (m.seller.id === FEATURED_ID) {
+        if (progress >= 0.55) {
+          m.el.classList.add('featured');
+        } else {
+          m.el.classList.remove('featured');
+        }
+      } else {
+        if (fadeProgress > 0 && progress < 1.0) {
+          m.el.classList.add('faded');
+        } else {
+          m.el.classList.remove('faded');
+        }
+      }
+    });
+
+    // Phase 4: 0.85–1.00 — Property card + scroll lock
+    if (progress >= 0.85) {
+      propertyCard.classList.add('visible');
+    } else {
+      propertyCard.classList.remove('visible');
+    }
+
+    // Lock scroll when card is fully in view
+    if (progress >= 0.92 && !scrollLocked) {
+      scrollLocked = true;
+      document.documentElement.style.overflow = 'hidden';
+    }
+
+    // ——— Camera interpolation ———
+    let cam;
+    if (progress < 0.25) {
+      cam = HOME;
+    } else if (progress < 0.55) {
+      const t = subProgress(progress, 0.25, 0.55);
+      cam = lerpCamera(HOME, MID, t);
+    } else {
+      const t = subProgress(progress, 0.55, 0.85);
+      cam = lerpCamera(MID, FOCUSED, t);
+    }
+
+    // Dirty-check: only call jumpTo if camera changed meaningfully
+    const camKey = cam.center[0].toFixed(5) + ',' + cam.center[1].toFixed(5) + ',' +
+                   cam.zoom.toFixed(3) + ',' + cam.pitch.toFixed(2) + ',' + cam.bearing.toFixed(2);
+    if (camKey !== lastCameraKey) {
+      lastCameraKey = camKey;
+      map.jumpTo({
+        center: cam.center,
+        zoom: cam.zoom,
+        pitch: cam.pitch,
+        bearing: cam.bearing,
       });
-    }, { threshold: 0.2 });
-    observer.observe(mapSection);
+    }
+  }
+
+  // ——— Scroll listener with rAF throttle ———
+  let rafId = null;
+  let isInRunway = false;
+
+  function onScroll() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      const progress = getScrollProgress();
+      // Only update when runway is in view
+      if (progress > 0 || isInRunway) {
+        isInRunway = progress > 0 && progress < 1;
+        if (Math.abs(progress - lastProgress) > 0.001) {
+          lastProgress = progress;
+          updateMapFromScroll(progress);
+        }
+      }
+    });
+  }
+
+  // ——— CTA click handler ———
+  if (ctaBtn) {
+    ctaBtn.addEventListener('click', () => {
+      // 1. Fade overlay
+      transitionOverlay.classList.add('active');
+
+      // 2. After fade, unlock scroll, scroll to dashboard and reset map
+      setTimeout(() => {
+        // Unlock scroll
+        scrollLocked = false;
+        document.documentElement.style.overflow = '';
+
+        // Reset map to home view
+        map.jumpTo({
+          center: HOME.center,
+          zoom: HOME.zoom,
+          pitch: HOME.pitch,
+          bearing: HOME.bearing,
+        });
+
+        // Remove all markers
+        markers.forEach(m => {
+          if (m.addedToMap) {
+            m.el.classList.remove('visible', 'faded', 'featured');
+            m.marker.remove();
+            m.addedToMap = false;
+          }
+        });
+        visibleMarkerCount = 0;
+
+        // Reset heatmap
+        if (heatmapAdded) {
+          try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch(e) {}
+        }
+
+        // Reset cover + expansion
+        coverEl.style.opacity = '1';
+        propertyCard.classList.remove('visible');
+        phaseLabel.classList.remove('visible');
+        progressTrack.style.opacity = '0';
+        glWrapEl.style.height = '';
+        stickyEl.style.maxWidth = '';
+        containerEl.style.borderRadius = '';
+        containerEl.style.boxShadow = '';
+        lastProgress = -1;
+        lastCameraKey = '';
+        lastPhase = '';
+
+        // Collapse runway so scrolling up shows hero, not map
+        const scrollBefore = window.scrollY;
+        const runwayH = runwayEl.offsetHeight;
+        runwayEl.style.height = '0';
+        runwayEl.style.overflow = 'hidden';
+        runwayEl.style.padding = '0';
+        // Adjust scroll to keep viewport stable during collapse
+        window.scrollTo(0, Math.max(0, scrollBefore - runwayH));
+
+        // Scroll to dashboard
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) {
+          dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Highlight seller #7 in dashboard
+        setTimeout(() => {
+          if (window.SignalDashboard && window.SignalDashboard.highlightSeller) {
+            window.SignalDashboard.highlightSeller(FEATURED_ID);
+          }
+          // Remove overlay after transition
+          transitionOverlay.classList.remove('active');
+        }, 600);
+      }, 500);
+    });
+  }
+
+  // ——— Init: start listening once map loads ———
+  function initScrollDrive() {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', () => { lastCameraKey = ''; onScroll(); }, { passive: true });
+    // Run once to set initial state
+    onScroll();
+  }
+
+  if (map.loaded()) {
+    initScrollDrive();
+  } else {
+    map.on('load', initScrollDrive);
   }
 
 })();
