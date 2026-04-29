@@ -1572,9 +1572,15 @@
 </footer>
 
 <script>
-// ——— Force scroll to top on every page load ———
+// ——— Force clean state on every page load ———
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
+document.documentElement.style.overflow = '';
+
+// Reset if restored from bfcache (back/forward navigation)
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) location.reload();
+});
 
 // ——— Nav scroll effect ———
 const nav = document.getElementById('nav');
