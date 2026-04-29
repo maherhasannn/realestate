@@ -55,7 +55,9 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
-  const clickCursorRef = useRef(null);
+  const clickCursorElRef = useRef(null);
+  const clickCursorMarkerRef = useRef(null);
+  const clickCursorAddedRef = useRef(false);
   const heatmapAddedRef = useRef(false);
   const stateRef = useRef({
     lastProgress: -1,
@@ -100,6 +102,12 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         }
       });
       state.visibleMarkerCount = 0;
+
+      if (clickCursorElRef.current) clickCursorElRef.current.classList.remove('visible');
+      if (clickCursorMarkerRef.current) {
+        clickCursorMarkerRef.current.remove();
+        clickCursorAddedRef.current = false;
+      }
 
       if (heatmapAddedRef.current) {
         try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch (e) { /* ignore */ }
@@ -304,6 +312,31 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     });
     markersRef.current = markerArr;
 
+    // Click cursor marker on the featured building
+    const clickCursorEl = document.createElement('div');
+    clickCursorEl.className = 'map-click-cursor';
+    clickCursorEl.innerHTML = `
+      <div class="map-click-cursor-label">Add to Signal Pipeline</div>
+      <div class="map-click-cursor-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M5 3l14 8.5L12 14l-2.5 7L5 3z" fill="#0A0A0A" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        <div class="map-click-ripple"></div>
+      </div>
+    `;
+    clickCursorElRef.current = clickCursorEl;
+
+    const clickCursorMarker = new mapboxgl.Marker({
+      element: clickCursorEl,
+      anchor: 'bottom',
+      offset: [0, -20],
+    }).setLngLat(sellerCoords[FEATURED_ID]);
+    clickCursorMarkerRef.current = clickCursorMarker;
+
+    clickCursorEl.addEventListener('click', () => {
+      triggerAddToPipelineRef.current();
+    });
+
     // Scroll-driven update
     function getScrollProgress() {
       if (!runwayRef.current) return 0;
@@ -467,14 +500,22 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       // Phase 4: Property card + click cursor + scroll lock
       if (progress >= 0.85) {
         propertyCard.classList.add('visible');
-        const cursor = clickCursorRef.current;
-        if (cursor && !cursor.classList.contains('visible')) {
-          cursor.classList.add('visible');
+        if (!clickCursorAddedRef.current && clickCursorMarkerRef.current) {
+          clickCursorMarkerRef.current.addTo(map);
+          clickCursorAddedRef.current = true;
+          requestAnimationFrame(() => clickCursorElRef.current?.classList.add('visible'));
         }
       } else {
         propertyCard.classList.remove('visible');
-        const cursor = clickCursorRef.current;
-        if (cursor) cursor.classList.remove('visible');
+        if (clickCursorAddedRef.current && clickCursorElRef.current) {
+          clickCursorElRef.current.classList.remove('visible');
+          setTimeout(() => {
+            if (!clickCursorElRef.current?.classList.contains('visible') && clickCursorMarkerRef.current) {
+              clickCursorMarkerRef.current.remove();
+              clickCursorAddedRef.current = false;
+            }
+          }, 400);
+        }
       }
 
       if (progress >= 0.92 && !state.scrollLocked) {
@@ -519,9 +560,16 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       });
     }
 
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible' && stateRef.current.scrollLocked) {
+        document.documentElement.style.overflow = 'hidden';
+      }
+    }
+
     function initScrollDrive() {
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', () => { stateRef.current.lastCameraKey = ''; onScroll(); }, { passive: true });
+      document.addEventListener('visibilitychange', onVisibilityChange);
       onScroll();
     }
 
@@ -533,6 +581,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       map.remove();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -589,18 +638,11 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
                   <div className="map-property-stat-value">Lisa Park</div>
                 </div>
               </div>
-              <div className="map-cta-wrap">
-                <button className="map-property-cta" onClick={triggerAddToPipeline}>
-                  <span className="map-property-cta-dot"></span>
-                  Add to Signal Pipeline
-                </button>
-                <div className="map-click-cursor" ref={clickCursorRef}>
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M5 3l14 8.5L12 14l-2.5 7L5 3z" fill="#0A0A0A" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/>
-                  </svg>
-                  <div className="map-click-ripple"></div>
-                </div>
-              </div>
+              <button className="map-property-cta" onClick={triggerAddToPipeline}>
+                <span className="map-property-cta-dot"></span>
+                Add to Signal Pipeline
+              </button>
+              <div className="map-property-hint">{'\u2191'} Click to continue</div>
             </div>
             <div className="map-scroll-hint" ref={scrollHintRef}>Scroll to explore {'\u2193'}</div>
             <div className="map-transition-overlay" ref={overlayRef}>
