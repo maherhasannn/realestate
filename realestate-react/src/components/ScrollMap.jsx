@@ -95,6 +95,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     setTimeout(() => {
       state.scrollLocked = false;
+      window.__mapScrollLocked = false;
       document.documentElement.style.overflow = '';
 
       map.jumpTo({ center: HOME.center, zoom: HOME.zoom, pitch: HOME.pitch, bearing: HOME.bearing });
@@ -536,6 +537,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
       if (progress >= 0.92 && !state.scrollLocked) {
         state.scrollLocked = true;
+        window.__mapScrollLocked = true;
         document.documentElement.style.overflow = 'hidden';
         // Keep WebGL context alive while idle in locked state
         if (!keepaliveRef.current) {
