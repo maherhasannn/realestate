@@ -1188,7 +1188,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .map-property-stat {
@@ -1212,199 +1212,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   letter-spacing: -0.01em;
 }
 
-.map-property-cta {
-  width: 100%;
-  padding: 12px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: var(--font);
-  background: var(--black);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
 
-.map-property-cta:hover { opacity: 0.8; }
-
-.map-property-card.visible .map-property-cta {
-  animation: ctaPulse 2s ease-in-out infinite 0.4s;
-}
-
-@keyframes ctaPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
-}
-
-.map-property-cta-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-}
-
-.map-property-card.visible .map-property-cta-dot {
-  animation: pulse 1.5s infinite;
-  box-shadow: 0 0 12px var(--green);
-}
-
-/* Restore property hint */
-.map-property-hint {
-  text-align: center;
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--gray-300);
-  margin-top: 8px;
-}
-
-/* Animated click cursor (Mapbox marker on featured building) */
-.map-click-cursor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
-}
-
-.map-click-cursor.visible {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.map-click-cursor-label {
-  padding: 7px 14px;
-  background: var(--black);
-  color: var(--white);
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  border-radius: 6px;
-  white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  margin-bottom: 6px;
-  transition: box-shadow 0.2s;
-}
-
-.map-click-cursor.visible .map-click-cursor-label {
-  animation: labelPulse 2.4s ease-in-out infinite 0.6s;
-}
-
-.map-click-cursor:hover .map-click-cursor-label {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 0 8px rgba(34,197,94,0.15);
-}
-
-@keyframes labelPulse {
-  0%, 18% {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  }
-  40% {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 0 10px rgba(34,197,94,0.25);
-  }
-  55% {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 0 0px rgba(34,197,94,0);
-  }
-  100% {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  }
-}
-
-.map-click-cursor-icon {
-  position: relative;
-  width: 28px;
-  height: 28px;
-}
-
-.map-click-cursor.visible .map-click-cursor-icon {
-  animation: cursorLoop 2.4s ease-in-out infinite 0.6s;
-}
-
-.map-click-cursor-icon svg {
-  width: 28px;
-  height: 28px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-}
-
-/* Ripple that appears on the "click" moment */
-.map-click-ripple {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.4);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.map-click-cursor.visible .map-click-ripple {
-  animation: cursorRipple 2.4s ease-out infinite 0.6s;
-}
-
-@keyframes cursorLoop {
-  0% {
-    transform: translate(-60px, 80px);
-    opacity: 0;
-  }
-  8% {
-    opacity: 1;
-  }
-  25% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  36% {
-    transform: translate(0, 0) scale(1);
-  }
-  42% {
-    transform: translate(0, 0) scale(0.82);
-  }
-  50% {
-    transform: translate(0, 0) scale(1);
-  }
-  68% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  88% {
-    transform: translate(-60px, 80px);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(-60px, 80px);
-    opacity: 0;
-  }
-}
-
-@keyframes cursorRipple {
-  0%, 36% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-  42% {
-    transform: scale(1.2);
-    opacity: 0.7;
-  }
-  60% {
-    transform: scale(3.5);
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 
 /* Scroll hint pill */
 .map-scroll-hint {
@@ -1437,68 +1245,70 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   50% { transform: translateX(-50%) translateY(4px); }
 }
 
-/* Transition overlay */
-.map-transition-overlay {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  z-index: 10;
-  opacity: 0;
+
+/* Pipeline confirmation section (between map and dashboard) */
+.pipeline-confirm-section {
+  position: relative;
+  height: 200vh;
+  padding: 0 24px;
+}
+
+.pipeline-confirm-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
-  transition: opacity 0.6s ease;
-  border-radius: 0 0 12px 12px;
+}
+
+.pipeline-confirm-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.map-transition-overlay.active {
-  opacity: 1;
-}
-
-.map-transition-status {
-  font-size: 13px;
-  font-family: var(--mono);
-  font-weight: 500;
-  color: var(--gray-400);
+  gap: 16px;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.4s ease 0.3s, transform 0.4s ease 0.3s;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.map-transition-overlay.active .map-transition-status {
+.pipeline-confirm-inner.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-.map-transition-check {
-  width: 32px;
-  height: 32px;
+.pipeline-confirm-check {
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--green-bg-strong);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transform: scale(0.5);
-  transition: opacity 0.3s ease 0.15s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s;
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
 }
 
-.map-transition-overlay.active .map-transition-check {
-  opacity: 1;
+.pipeline-confirm-inner.visible .pipeline-confirm-check {
   transform: scale(1);
 }
 
-.map-transition-check svg {
-  width: 16px;
-  height: 16px;
-  stroke: var(--green);
-  fill: none;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.pipeline-confirm-check svg {
+  width: 28px;
+  height: 28px;
+}
+
+.pipeline-confirm-text {
+  font-size: 18px;
+  color: var(--gray-400);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.pipeline-confirm-text strong {
+  color: var(--black);
+  font-weight: 600;
 }
 
 /* Map marker dots */
@@ -1704,6 +1514,24 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-phase-label {
     font-size: 11px;
     padding: 5px 10px;
+  }
+
+  .pipeline-confirm-section {
+    height: 150vh;
+  }
+
+  .pipeline-confirm-check {
+    width: 48px;
+    height: 48px;
+  }
+
+  .pipeline-confirm-check svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .pipeline-confirm-text {
+    font-size: 16px;
   }
 }
 
@@ -2109,6 +1937,24 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-gl-wrap { height: 260px; }
   .map-scroll-runway { height: 180vh; }
   .map-property-grid { grid-template-columns: 1fr; }
+
+  .pipeline-confirm-section {
+    height: 120vh;
+  }
+
+  .pipeline-confirm-check {
+    width: 44px;
+    height: 44px;
+  }
+
+  .pipeline-confirm-check svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pipeline-confirm-text {
+    font-size: 15px;
+  }
 
   .cta-inner h2 { font-size: 22px; }
   .quote-section p { font-size: 16px; }

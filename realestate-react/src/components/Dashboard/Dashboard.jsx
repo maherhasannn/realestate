@@ -60,10 +60,6 @@ const Dashboard = forwardRef(function Dashboard(props, ref) {
       const idx = sorted.findIndex(s => s.id === id);
       if (idx >= 0) setCurrentPage(Math.floor(idx / pageSize));
 
-      if (dashboardElRef.current) {
-        dashboardElRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
       setTimeout(() => {
         const row = document.querySelector(`.dashboard-row[data-id="${id}"]`);
         if (row) {

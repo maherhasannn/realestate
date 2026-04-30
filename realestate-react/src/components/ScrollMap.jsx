@@ -50,108 +50,24 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
   const phaseLabelRef = useRef(null);
   const propertyCardRef = useRef(null);
   const scrollHintRef = useRef(null);
-  const overlayRef = useRef(null);
   const statusRef = useRef(null);
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
-  const clickCursorElRef = useRef(null);
-  const clickCursorMarkerRef = useRef(null);
-  const clickCursorAddedRef = useRef(false);
   const heatmapAddedRef = useRef(false);
   const keepaliveRef = useRef(null);
-  const lockScrollYRef = useRef(null);
   const stateRef = useRef({
     lastProgress: -1,
     lastPhase: '',
     visibleMarkerCount: 0,
     lastCameraKey: '',
-    scrollLocked: false,
+    pipelineTriggered: false,
   });
 
   const mapCoverUrl = `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/-118.48,34.055,10.8/960x480@2x?access_token=${MAPBOX_TOKEN}`;
 
   const triggerAddToPipeline = useCallback(() => {
-    const overlay = overlayRef.current;
-    const state = stateRef.current;
-    const map = mapRef.current;
-    const markers = markersRef.current;
-    const runway = runwayRef.current;
-    const cover = coverRef.current;
-    const propertyCard = propertyCardRef.current;
-    const phaseLabel = phaseLabelRef.current;
-    const progressTrack = progressTrackRef.current;
-    const scrollHint = scrollHintRef.current;
-    const glWrap = glWrapRef.current;
-    const sticky = stickyRef.current;
-    const container = containerRef.current;
-
-    if (!overlay || !map) return;
-
-    overlay.classList.add('active');
-    if (keepaliveRef.current) {
-      clearInterval(keepaliveRef.current);
-      keepaliveRef.current = null;
-    }
-
-    setTimeout(() => {
-      state.scrollLocked = false;
-      lockScrollYRef.current = null;
-
-      map.jumpTo({ center: HOME.center, zoom: HOME.zoom, pitch: HOME.pitch, bearing: HOME.bearing });
-
-      markers.forEach(m => {
-        if (m.addedToMap) {
-          m.el.classList.remove('visible', 'faded', 'featured');
-          m.marker.remove();
-          m.addedToMap = false;
-        }
-      });
-      state.visibleMarkerCount = 0;
-
-      if (clickCursorElRef.current) clickCursorElRef.current.classList.remove('visible');
-      if (clickCursorMarkerRef.current) {
-        clickCursorMarkerRef.current.remove();
-        clickCursorAddedRef.current = false;
-      }
-
-      if (heatmapAddedRef.current) {
-        try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', 0); } catch (e) { /* ignore */ }
-      }
-
-      if (cover) cover.style.opacity = '1';
-      if (propertyCard) propertyCard.classList.remove('visible');
-      if (phaseLabel) phaseLabel.classList.remove('visible');
-      if (progressTrack) progressTrack.style.opacity = '0';
-      if (scrollHint) scrollHint.classList.remove('visible', 'lock-prompt');
-      if (glWrap) glWrap.style.height = '';
-      if (sticky) sticky.style.maxWidth = '';
-      if (container) { container.style.borderRadius = ''; container.style.boxShadow = ''; }
-      state.lastProgress = -1;
-      state.lastCameraKey = '';
-      state.lastPhase = '';
-
-      runway.style.height = '0';
-      runway.style.overflow = 'hidden';
-      runway.style.padding = '0';
-
-      // Scroll to the dashboard (next section after the map), centered on screen
-      const nextSection = runway.nextElementSibling;
-      if (nextSection) {
-        const rect = nextSection.getBoundingClientRect();
-        const scrollY = window.scrollY + rect.top - (window.innerHeight - rect.height) / 2;
-        window.scrollTo(0, Math.max(0, scrollY));
-      }
-    }, 1000);
-
-    setTimeout(() => {
-      setTimeout(() => {
-        overlay.classList.remove('active');
-        setTimeout(() => {
-          if (onAddToPipeline) onAddToPipeline();
-        }, 400);
-      }, 500);
-    }, 1400);
+    if (onAddToPipeline) onAddToPipeline();
   }, [onAddToPipeline]);
 
   // Initialize map
@@ -329,31 +245,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     });
     markersRef.current = markerArr;
 
-    // Click cursor marker on the featured building
-    const clickCursorEl = document.createElement('div');
-    clickCursorEl.className = 'map-click-cursor';
-    clickCursorEl.innerHTML = `
-      <div class="map-click-cursor-label">Add to Signal Pipeline</div>
-      <div class="map-click-cursor-icon">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M5 3l14 8.5L12 14l-2.5 7L5 3z" fill="#0A0A0A" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
-        </svg>
-        <div class="map-click-ripple"></div>
-      </div>
-    `;
-    clickCursorElRef.current = clickCursorEl;
-
-    const clickCursorMarker = new mapboxgl.Marker({
-      element: clickCursorEl,
-      anchor: 'bottom',
-      offset: [0, -20],
-    }).setLngLat(sellerCoords[FEATURED_ID]);
-    clickCursorMarkerRef.current = clickCursorMarker;
-
-    clickCursorEl.addEventListener('click', () => {
-      triggerAddToPipelineRef.current();
-    });
-
     // Scroll-driven update
     function getScrollProgress() {
       if (!runwayRef.current) return 0;
@@ -514,32 +405,16 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         }
       });
 
-      // Phase 4: Property card + click cursor + scroll lock
+      // Phase 4: Property card (informational) + auto-trigger pipeline
       if (progress >= 0.85) {
         propertyCard.classList.add('visible');
-        if (!clickCursorAddedRef.current && clickCursorMarkerRef.current) {
-          clickCursorMarkerRef.current.addTo(map);
-          clickCursorAddedRef.current = true;
-          requestAnimationFrame(() => clickCursorElRef.current?.classList.add('visible'));
-        }
-      } else if (!state.scrollLocked) {
-        // Only remove cursor/card if we haven't locked yet — a resize after
-        // locking can briefly shift progress below 0.85 and would kill them.
+      } else {
         propertyCard.classList.remove('visible');
-        if (clickCursorAddedRef.current && clickCursorElRef.current) {
-          clickCursorElRef.current.classList.remove('visible');
-          setTimeout(() => {
-            if (!clickCursorElRef.current?.classList.contains('visible') && clickCursorMarkerRef.current) {
-              clickCursorMarkerRef.current.remove();
-              clickCursorAddedRef.current = false;
-            }
-          }, 400);
-        }
       }
 
-      if (progress >= 0.92 && !state.scrollLocked) {
-        state.scrollLocked = true;
-        lockScrollYRef.current = window.scrollY;
+      if (progress >= 0.90 && !state.pipelineTriggered) {
+        state.pipelineTriggered = true;
+        triggerAddToPipelineRef.current();
       }
 
       // Camera
@@ -579,17 +454,8 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       });
     }
 
-    // Non-throttled scroll clamp — snaps scroll back to lock position every frame
-    // so Safari keeps firing scroll events (page stays "active") but user can't leave
-    function onScrollClamp() {
-      if (stateRef.current.scrollLocked && lockScrollYRef.current !== null) {
-        window.scrollTo(0, lockScrollYRef.current);
-      }
-    }
-
     function initScrollDrive() {
       window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('scroll', onScrollClamp);
       window.addEventListener('resize', () => { stateRef.current.lastCameraKey = ''; onScroll(); }, { passive: true });
       onScroll();
     }
@@ -602,7 +468,6 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scroll', onScrollClamp);
       if (keepaliveRef.current) clearInterval(keepaliveRef.current);
       map.remove();
     };
@@ -660,19 +525,8 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
                   <div className="map-property-stat-value">Lisa Park</div>
                 </div>
               </div>
-              <button className="map-property-cta" onClick={triggerAddToPipeline}>
-                <span className="map-property-cta-dot"></span>
-                Add to Signal Pipeline
-              </button>
-              <div className="map-property-hint">{'\u2191'} Click to continue</div>
             </div>
             <div className="map-scroll-hint" ref={scrollHintRef}>Scroll to explore {'\u2193'}</div>
-            <div className="map-transition-overlay" ref={overlayRef}>
-              <div className="map-transition-check">
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
-              </div>
-              <div className="map-transition-status">Adding to Signal Pipeline...</div>
-            </div>
           </div>
         </div>
       </div>

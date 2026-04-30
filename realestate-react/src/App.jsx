@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { sellers } from './data/sellers';
 import Nav from './components/Nav';
@@ -19,8 +19,13 @@ const FEATURED_ID = 7;
 
 function HomePage() {
   const dashboardRef = useRef(null);
+  const mapWrapRef = useRef(null);
+  const dashboardWrapRef = useRef(null);
+  const mapCollapsedRef = useRef(false);
+  const [pipelineConfirmed, setPipelineConfirmed] = useState(false);
 
   const handleAddToPipeline = useCallback(() => {
+    setPipelineConfirmed(true);
     if (dashboardRef.current) {
       dashboardRef.current.highlightSeller(FEATURED_ID);
     }
@@ -58,12 +63,58 @@ function HomePage() {
     };
   }, []);
 
+  // Collapse map (only) once the dashboard scrolls into view
+  useEffect(() => {
+    if (!pipelineConfirmed || mapCollapsedRef.current) return;
+    const dashEl = dashboardWrapRef.current;
+    const mapEl = mapWrapRef.current;
+    if (!dashEl || !mapEl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !mapCollapsedRef.current) {
+          mapCollapsedRef.current = true;
+          observer.disconnect();
+          // Batch measurement + collapse + scroll-fix into one frame
+          requestAnimationFrame(() => {
+            const removedHeight = mapEl.offsetHeight;
+            mapEl.style.height = '0';
+            mapEl.style.overflow = 'hidden';
+            window.scrollBy(0, -removedHeight);
+          });
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    observer.observe(dashEl);
+    return () => observer.disconnect();
+  }, [pipelineConfirmed]);
+
   return (
     <>
       <Nav />
       <Hero />
-      <ScrollMap sellers={sellers} onAddToPipeline={handleAddToPipeline} />
-      <Dashboard ref={dashboardRef} />
+      <div ref={mapWrapRef}>
+        <ScrollMap sellers={sellers} onAddToPipeline={handleAddToPipeline} />
+      </div>
+      <section className="pipeline-confirm-section">
+        <div className="pipeline-confirm-sticky">
+          <div className={`pipeline-confirm-inner${pipelineConfirmed ? ' visible' : ''}`}>
+            <div className="pipeline-confirm-check">
+              <svg viewBox="0 0 24 24" fill="none">
+                <polyline points="20 6 9 17 4 12" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="pipeline-confirm-text">
+              You have added <strong>1520 Benedict Canyon</strong> to your pipeline
+            </p>
+          </div>
+        </div>
+      </section>
+      <div ref={dashboardWrapRef}>
+        <Dashboard ref={dashboardRef} />
+      </div>
       <Stats />
       <Features />
       <Quote />
