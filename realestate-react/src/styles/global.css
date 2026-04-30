@@ -1364,6 +1364,11 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   100% { transform: scale(3.5); opacity: 0; }
 }
 
+@keyframes mapPingMobile {
+  0%   { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
@@ -1490,6 +1495,10 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
     top: 70px;
   }
 
+  .map-container {
+    transition: box-shadow 0.3s ease;
+  }
+
   .map-gl-wrap {
     height: 360px;
   }
@@ -1499,11 +1508,17 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
     height: 12px;
   }
 
+  .map-marker-ping {
+    animation-name: mapPingMobile;
+  }
+
   .map-property-card {
     width: calc(100% - 24px);
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 16px;
+    font-size: 13px;
   }
 
   .map-property-grid {
@@ -1517,7 +1532,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   }
 
   .pipeline-confirm-section {
-    height: 150vh;
+    height: 120vh;
   }
 
   .pipeline-confirm-check {
@@ -1879,6 +1894,8 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-gl-wrap { height: 300px; }
   .map-scroll-runway { height: 200vh; }
 
+  .pipeline-confirm-section { height: 100vh; }
+
   /* Product */
   .capabilities { padding: 60px 24px; }
   .deep-section { padding: 48px 24px; gap: 32px; }
@@ -1939,7 +1956,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-property-grid { grid-template-columns: 1fr; }
 
   .pipeline-confirm-section {
-    height: 120vh;
+    height: 80vh;
   }
 
   .pipeline-confirm-check {

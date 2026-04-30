@@ -62,6 +62,8 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     visibleMarkerCount: 0,
     lastCameraKey: '',
     pipelineTriggered: false,
+    lastResizeHeight: 0,
+    lastHeatmapOpacity: -1,
   });
 
   const mapCoverUrl = `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/-118.48,34.055,10.8/960x480@2x?access_token=${MAPBOX_TOKEN}`;
@@ -97,6 +99,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     map.touchZoomRotate.disable();
 
     mapRef.current = map;
+    const isMobile = window.innerWidth <= 768;
 
     // Recover from WebGL context loss
     const canvas = map.getCanvas();
@@ -284,11 +287,17 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         const targetH = Math.max(baseH, vh - 300);
         const targetW = Math.min(Math.max(960, vw - 48), 1200);
         // Batch writes
-        glWrap.style.height = lerp(baseH, targetH, expandT) + 'px';
+        const newH = lerp(baseH, targetH, expandT);
+        glWrap.style.height = newH + 'px';
         sticky.style.maxWidth = lerp(960, targetW, expandT) + 'px';
         containerEl.style.borderRadius = lerp(12, 8, expandT) + 'px';
-        containerEl.style.boxShadow = `0 1px 3px rgba(0,0,0,${lerp(0.04, 0, expandT)}), 0 24px 68px rgba(0,0,0,${lerp(0.06, 0.02, expandT)})`;
-        map.resize();
+        if (!isMobile) {
+          containerEl.style.boxShadow = `0 1px 3px rgba(0,0,0,${lerp(0.04, 0, expandT)}), 0 24px 68px rgba(0,0,0,${lerp(0.06, 0.02, expandT)})`;
+        }
+        if (!isMobile || Math.abs(newH - state.lastResizeHeight) >= 2) {
+          state.lastResizeHeight = newH;
+          map.resize();
+        }
       } else {
         glWrap.style.height = '';
         sticky.style.maxWidth = '';
@@ -313,11 +322,16 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
       // Heatmap opacity
       if (heatmapAddedRef.current) {
-        const heatOpacity = progress < 0.10 ? 0
+        const heatOpacity = Math.max(0, Math.min(1,
+          progress < 0.10 ? 0
           : progress < 0.25 ? subProgress(progress, 0.10, 0.20)
           : progress < 0.55 ? 1
-          : 1 - subProgress(progress, 0.55, 0.70);
-        try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', Math.max(0, Math.min(1, heatOpacity))); } catch (e) { /* ignore */ }
+          : 1 - subProgress(progress, 0.55, 0.70)
+        ));
+        if (Math.abs(heatOpacity - state.lastHeatmapOpacity) > 0.01) {
+          state.lastHeatmapOpacity = heatOpacity;
+          try { map.setPaintProperty('seller-heatmap-layer', 'heatmap-opacity', heatOpacity); } catch (e) { /* ignore */ }
+        }
       }
 
       // Phase labels
@@ -367,7 +381,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
             m.addedToMap = true;
             requestAnimationFrame(() => {
               m.el.classList.add('visible');
-              addPing(m.el);
+              if (!isMobile) addPing(m.el);
             });
           }
         }
@@ -431,8 +445,9 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         cam = lerpCamera(MID, FOCUSED, subProgress(progress, 0.55, 0.85));
       }
 
-      const camKey = cam.center[0].toFixed(5) + ',' + cam.center[1].toFixed(5) + ',' +
-                     cam.zoom.toFixed(3) + ',' + cam.pitch.toFixed(2) + ',' + cam.bearing.toFixed(2);
+      const cp = isMobile ? 4 : 5, cz = isMobile ? 2 : 3, cr = isMobile ? 1 : 2;
+      const camKey = cam.center[0].toFixed(cp) + ',' + cam.center[1].toFixed(cp) + ',' +
+                     cam.zoom.toFixed(cz) + ',' + cam.pitch.toFixed(cr) + ',' + cam.bearing.toFixed(cr);
       if (camKey !== state.lastCameraKey) {
         state.lastCameraKey = camKey;
         map.jumpTo({ center: cam.center, zoom: cam.zoom, pitch: cam.pitch, bearing: cam.bearing });
@@ -460,7 +475,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       // Lerp toward target (0.12 ≈ settles in ~300 ms)
       const diff = targetProgress - smoothProgress;
       if (Math.abs(diff) > 0.0005) {
-        smoothProgress += diff * 0.12;
+        smoothProgress += diff * (isMobile ? 0.22 : 0.12);
       } else {
         smoothProgress = targetProgress;
       }
