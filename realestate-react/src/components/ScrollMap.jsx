@@ -277,10 +277,14 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       // Map expansion (0.02 → 0.15)
       const expandT = easeInOut(subProgress(progress, 0.02, 0.15));
       if (expandT > 0) {
-        const baseH = window.innerWidth <= 768 ? 360 : 480;
-        const targetH = Math.max(baseH, window.innerHeight - 300);
+        // Batch reads first to avoid layout thrashing
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const baseH = vw <= 768 ? 360 : 480;
+        const targetH = Math.max(baseH, vh - 300);
+        const targetW = Math.min(Math.max(960, vw - 48), 1200);
+        // Batch writes
         glWrap.style.height = lerp(baseH, targetH, expandT) + 'px';
-        const targetW = Math.min(Math.max(960, window.innerWidth - 48), 1200);
         sticky.style.maxWidth = lerp(960, targetW, expandT) + 'px';
         containerEl.style.borderRadius = lerp(12, 8, expandT) + 'px';
         containerEl.style.boxShadow = `0 1px 3px rgba(0,0,0,${lerp(0.04, 0, expandT)}), 0 24px 68px rgba(0,0,0,${lerp(0.06, 0.02, expandT)})`;
@@ -435,23 +439,43 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       }
     }
 
+    // --- Smooth scroll-driven animation loop ---
+    // Scroll events only update the target; a self-sustaining RAF loop
+    // lerps smoothProgress toward the target for fluid 60 fps motion.
+    let targetProgress = 0;
+    let smoothProgress = 0;
     let rafId = null;
-    let isInRunway = false;
 
     function onScroll() {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        const progress = getScrollProgress();
-        const state = stateRef.current;
-        if (progress > 0 || isInRunway) {
-          isInRunway = progress > 0 && progress < 1;
-          if (Math.abs(progress - state.lastProgress) > 0.001) {
-            state.lastProgress = progress;
-            updateMapFromScroll(progress);
-          }
-        }
-      });
+      // Kick the loop if it isn't already running
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+
+    function tick() {
+      rafId = null;
+
+      // Always read the freshest scroll position
+      targetProgress = getScrollProgress();
+
+      // Lerp toward target (0.12 ≈ settles in ~300 ms)
+      const diff = targetProgress - smoothProgress;
+      if (Math.abs(diff) > 0.0005) {
+        smoothProgress += diff * 0.12;
+      } else {
+        smoothProgress = targetProgress;
+      }
+
+      // Push update only when progress moved meaningfully
+      const state = stateRef.current;
+      if (Math.abs(smoothProgress - state.lastProgress) > 0.0005) {
+        state.lastProgress = smoothProgress;
+        updateMapFromScroll(smoothProgress);
+      }
+
+      // Keep the loop alive while the lerp is still converging
+      if (Math.abs(smoothProgress - targetProgress) > 0.0001) {
+        rafId = requestAnimationFrame(tick);
+      }
     }
 
     function initScrollDrive() {
@@ -468,6 +492,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
       if (keepaliveRef.current) clearInterval(keepaliveRef.current);
       map.remove();
     };
