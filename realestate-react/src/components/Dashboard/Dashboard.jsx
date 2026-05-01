@@ -63,18 +63,19 @@ const Dashboard = forwardRef(function Dashboard(props, ref) {
       setTimeout(() => {
         const row = document.querySelector(`.dashboard-row[data-id="${id}"]`);
         if (row) {
-          row.style.transition = 'background 0.5s ease, box-shadow 0.5s ease, border-color 0.3s ease';
+          row.classList.add('row-pulse');
+          row.style.transition = 'background 0.5s ease, border-color 0.3s ease';
           row.style.background = 'var(--green-bg-strong)';
-          row.style.boxShadow = '0 0 0 1px rgba(34,197,94,0.2), 0 4px 16px rgba(34,197,94,0.08)';
           row.style.borderLeft = '3px solid var(--green)';
           row.style.borderRadius = '8px';
           setTimeout(() => {
+            row.classList.remove('row-pulse');
             row.style.transition = 'background 1s ease, box-shadow 1s ease, border-color 1s ease';
             row.style.background = '';
             row.style.boxShadow = '';
             row.style.borderLeft = '';
             row.style.borderRadius = '';
-          }, 2000);
+          }, 3000);
         }
       }, 500);
     },

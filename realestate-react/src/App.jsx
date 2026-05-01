@@ -26,6 +26,9 @@ function HomePage() {
 
   const handleAddToPipeline = useCallback(() => {
     setPipelineConfirmed(true);
+  }, []);
+
+  const handleDashboardReady = useCallback(() => {
     if (dashboardRef.current) {
       dashboardRef.current.highlightSeller(FEATURED_ID);
     }
@@ -96,7 +99,7 @@ function HomePage() {
       <Nav />
       <Hero />
       <div ref={mapWrapRef}>
-        <ScrollMap sellers={sellers} onAddToPipeline={handleAddToPipeline} />
+        <ScrollMap sellers={sellers} onAddToPipeline={handleAddToPipeline} onDashboardReady={handleDashboardReady} />
       </div>
       <div ref={dashboardWrapRef}>
         <Dashboard ref={dashboardRef} />

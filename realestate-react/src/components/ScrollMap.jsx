@@ -53,7 +53,7 @@ function addLockOn(el) {
   setTimeout(() => flash.remove(), 1400);
 }
 
-export default function ScrollMap({ sellers, onAddToPipeline }) {
+export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }) {
   const runwayRef = useRef(null);
   const stickyRef = useRef(null);
   const containerRef = useRef(null);
@@ -342,8 +342,8 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       progressTrack.style.opacity = progress > 0.02 ? '1' : '0';
 
       // Scroll hint
-      if (progress > 0.03 && progress < 0.20) {
-        scrollHint.textContent = 'Scroll to explore \u2193';
+      if (progress < 0.20) {
+        scrollHint.textContent = 'Scroll down \u2193';
         scrollHint.classList.remove('lock-prompt');
         scrollHint.classList.add('visible');
       } else {
@@ -535,11 +535,13 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
                       dashboardWrap.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
                       dashboardWrap.style.opacity = '1';
                       dashboardWrap.style.transform = 'translateY(0)';
-                      dashboardWrap.addEventListener('transitionend', function handler() {
+                      dashboardWrap.addEventListener('transitionend', function handler(e) {
+                        if (e.target !== dashboardWrap) return;
                         dashboardWrap.removeEventListener('transitionend', handler);
                         dashboardWrap.style.transition = '';
                         dashboardWrap.style.opacity = '';
                         dashboardWrap.style.transform = '';
+                        if (onDashboardReadyRef.current) onDashboardReadyRef.current();
                       });
                     }
                   }
@@ -650,9 +652,11 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Keep a stable ref to triggerAddToPipeline for the building label click handler
+  // Keep stable refs for callbacks used inside the effect closure
   const triggerAddToPipelineRef = useRef(triggerAddToPipeline);
   triggerAddToPipelineRef.current = triggerAddToPipeline;
+  const onDashboardReadyRef = useRef(onDashboardReady);
+  onDashboardReadyRef.current = onDashboardReady;
 
   return (
     <section className="map-scroll-runway" ref={runwayRef}>
@@ -703,7 +707,7 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
                 </div>
               </div>
             </div>
-            <div className="map-scroll-hint" ref={scrollHintRef}>Scroll to explore {'\u2193'}</div>
+            <div className="map-scroll-hint visible" ref={scrollHintRef}>Scroll down {'\u2193'}</div>
             <div className="map-pipeline-overlay" ref={pipelineOverlayRef}>
               <div className="map-pipeline-overlay-inner">
                 <div className="pipeline-confirm-check">
