@@ -75,9 +75,9 @@ function HomePage() {
         if (entry.isIntersecting && !mapCollapsedRef.current) {
           mapCollapsedRef.current = true;
           observer.disconnect();
-          // Batch measurement + collapse + scroll-fix into one frame
           requestAnimationFrame(() => {
             const removedHeight = mapEl.offsetHeight;
+            if (removedHeight === 0) return; // Already collapsed by auto-scroll
             mapEl.style.height = '0';
             mapEl.style.overflow = 'hidden';
             window.scrollBy(0, -removedHeight);
@@ -98,20 +98,6 @@ function HomePage() {
       <div ref={mapWrapRef}>
         <ScrollMap sellers={sellers} onAddToPipeline={handleAddToPipeline} />
       </div>
-      <section className="pipeline-confirm-section">
-        <div className="pipeline-confirm-sticky">
-          <div className={`pipeline-confirm-inner${pipelineConfirmed ? ' visible' : ''}`}>
-            <div className="pipeline-confirm-check">
-              <svg viewBox="0 0 24 24" fill="none">
-                <polyline points="20 6 9 17 4 12" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <p className="pipeline-confirm-text">
-              You have added <strong>1520 Benedict Canyon</strong> to your pipeline
-            </p>
-          </div>
-        </div>
-      </section>
       <div ref={dashboardWrapRef}>
         <Dashboard ref={dashboardRef} />
       </div>

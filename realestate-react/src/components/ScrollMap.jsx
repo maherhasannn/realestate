@@ -38,6 +38,21 @@ function addPing(el) {
   setTimeout(() => ping.remove(), 900);
 }
 
+function addLockOn(el) {
+  el.style.position = 'relative';
+  for (let i = 0; i < 2; i++) {
+    const ring = document.createElement('div');
+    ring.className = 'map-lock-ring';
+    ring.style.animationDelay = (i * 0.25) + 's';
+    el.appendChild(ring);
+    setTimeout(() => ring.remove(), 1500);
+  }
+  const flash = document.createElement('div');
+  flash.className = 'map-lock-flash';
+  el.appendChild(flash);
+  setTimeout(() => flash.remove(), 1400);
+}
+
 export default function ScrollMap({ sellers, onAddToPipeline }) {
   const runwayRef = useRef(null);
   const stickyRef = useRef(null);
@@ -51,9 +66,12 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
   const propertyCardRef = useRef(null);
   const scrollHintRef = useRef(null);
   const statusRef = useRef(null);
+  const pipelineOverlayRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const labelMarkerRef = useRef(null);
   const heatmapAddedRef = useRef(false);
   const keepaliveRef = useRef(null);
   const stateRef = useRef({
@@ -62,6 +80,10 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     visibleMarkerCount: 0,
     lastCameraKey: '',
     pipelineTriggered: false,
+    lockOnTriggered: false,
+    overlayTimerTriggered: false,
+    overlayTimerId: null,
+    overlayIntervalId: null,
     lastResizeHeight: 0,
     lastHeatmapOpacity: -1,
   });
@@ -248,6 +270,14 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
     });
     markersRef.current = markerArr;
 
+    // Address label above the featured building
+    const labelEl = document.createElement('div');
+    labelEl.className = 'map-building-label';
+    labelEl.textContent = '1520 Benedict Canyon';
+    const labelMarker = new mapboxgl.Marker({ element: labelEl, anchor: 'bottom', offset: [0, -12] })
+      .setLngLat(sellerCoords[FEATURED_ID]);
+    labelMarkerRef.current = { marker: labelMarker, el: labelEl, addedToMap: false };
+
     // Scroll-driven update
     function getScrollProgress() {
       if (!runwayRef.current) return 0;
@@ -411,8 +441,13 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
         if (m.seller.id === FEATURED_ID) {
           if (progress >= 0.55) {
             m.el.classList.add('featured');
+            if (!state.lockOnTriggered) {
+              state.lockOnTriggered = true;
+              requestAnimationFrame(() => addLockOn(m.el));
+            }
           } else {
             m.el.classList.remove('featured');
+            state.lockOnTriggered = false;
           }
         } else {
           if (fadeProgress > 0 && progress < 1.0) {
@@ -422,6 +457,24 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
           }
         }
       });
+
+      // Address label on featured building
+      const lm = labelMarkerRef.current;
+      if (lm) {
+        if (progress >= 0.55) {
+          if (!lm.addedToMap) {
+            lm.marker.addTo(map);
+            lm.addedToMap = true;
+            requestAnimationFrame(() => lm.el.classList.add('visible'));
+          }
+        } else {
+          if (lm.addedToMap) {
+            lm.el.classList.remove('visible');
+            lm.marker.remove();
+            lm.addedToMap = false;
+          }
+        }
+      }
 
       // Phase 4: Property card (informational) + auto-trigger pipeline
       if (progress >= 0.85) {
@@ -433,6 +486,86 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       if (progress >= 0.90 && !state.pipelineTriggered) {
         state.pipelineTriggered = true;
         triggerAddToPipelineRef.current();
+      }
+
+      // Phase 5: Pipeline overlay + countdown + fade + collapse
+      const pipelineOverlay = pipelineOverlayRef.current;
+      if (pipelineOverlay) {
+        if (progress >= 0.93) {
+          pipelineOverlay.classList.add('visible');
+
+          if (!state.overlayTimerTriggered) {
+            state.overlayTimerTriggered = true;
+            document.documentElement.style.overflow = 'hidden';
+
+            let count = 3;
+            const countdownEl = countdownRef.current;
+            if (countdownEl) countdownEl.textContent = count;
+
+            state.overlayIntervalId = setInterval(() => {
+              count--;
+              if (count > 0) {
+                if (countdownEl) countdownEl.textContent = count;
+              } else {
+                clearInterval(state.overlayIntervalId);
+                state.overlayIntervalId = null;
+                if (countdownEl) countdownEl.textContent = '';
+
+                // Fade out map container
+                containerEl.style.transition = 'opacity 0.5s ease';
+                containerEl.style.opacity = '0';
+
+                // After fade, collapse runway and reveal dashboard
+                state.overlayTimerId = setTimeout(() => {
+                  document.documentElement.style.overflow = '';
+                  const runway = runwayRef.current;
+                  if (runway) {
+                    const runwayTop = runway.offsetTop;
+                    runway.style.height = '0';
+                    runway.style.overflow = 'hidden';
+                    window.scrollTo(0, runwayTop);
+
+                    // Graceful dashboard entrance
+                    const dashboardWrap = runway.parentElement?.nextElementSibling;
+                    if (dashboardWrap) {
+                      dashboardWrap.style.opacity = '0';
+                      dashboardWrap.style.transform = 'translateY(24px)';
+                      // Force reflow so initial state applies
+                      dashboardWrap.offsetHeight; // eslint-disable-line no-unused-expressions
+                      dashboardWrap.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                      dashboardWrap.style.opacity = '1';
+                      dashboardWrap.style.transform = 'translateY(0)';
+                      dashboardWrap.addEventListener('transitionend', function handler() {
+                        dashboardWrap.removeEventListener('transitionend', handler);
+                        dashboardWrap.style.transition = '';
+                        dashboardWrap.style.opacity = '';
+                        dashboardWrap.style.transform = '';
+                      });
+                    }
+                  }
+                }, 500);
+              }
+            }, 1000);
+          }
+        } else {
+          pipelineOverlay.classList.remove('visible');
+          if (state.overlayTimerTriggered) {
+            if (state.overlayIntervalId) {
+              clearInterval(state.overlayIntervalId);
+              state.overlayIntervalId = null;
+            }
+            if (state.overlayTimerId) {
+              clearTimeout(state.overlayTimerId);
+              state.overlayTimerId = null;
+            }
+            state.overlayTimerTriggered = false;
+            document.documentElement.style.overflow = '';
+            containerEl.style.transition = '';
+            containerEl.style.opacity = '';
+            const countdownEl = countdownRef.current;
+            if (countdownEl) countdownEl.textContent = '';
+          }
+        }
       }
 
       // Camera
@@ -509,6 +642,10 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
       window.removeEventListener('scroll', onScroll);
       if (rafId) cancelAnimationFrame(rafId);
       if (keepaliveRef.current) clearInterval(keepaliveRef.current);
+      const st = stateRef.current;
+      if (st.overlayIntervalId) clearInterval(st.overlayIntervalId);
+      if (st.overlayTimerId) clearTimeout(st.overlayTimerId);
+      document.documentElement.style.overflow = '';
       map.remove();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -567,6 +704,19 @@ export default function ScrollMap({ sellers, onAddToPipeline }) {
               </div>
             </div>
             <div className="map-scroll-hint" ref={scrollHintRef}>Scroll to explore {'\u2193'}</div>
+            <div className="map-pipeline-overlay" ref={pipelineOverlayRef}>
+              <div className="map-pipeline-overlay-inner">
+                <div className="pipeline-confirm-check">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <polyline points="20 6 9 17 4 12" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <p className="pipeline-confirm-text">
+                  You have added <strong>1520 Benedict Canyon</strong> to your pipeline
+                </p>
+                <span className="pipeline-countdown" ref={countdownRef}></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

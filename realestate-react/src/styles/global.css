@@ -1001,7 +1001,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   border: 1px solid var(--gray-100);
   box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 24px 68px rgba(0,0,0,0.06);
   overflow: hidden;
-  will-change: border-radius, box-shadow;
+  will-change: border-radius, box-shadow, opacity;
 }
 
 .map-header {
@@ -1246,35 +1246,35 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
 }
 
 
-/* Pipeline confirmation section (between map and dashboard) */
-.pipeline-confirm-section {
-  position: relative;
-  height: 200vh;
-  padding: 0 24px;
-}
-
-.pipeline-confirm-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+/* Pipeline overlay on map */
+.map-pipeline-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(1.4);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.5s ease;
 }
 
-.pipeline-confirm-inner {
+.map-pipeline-overlay.visible {
+  opacity: 1;
+}
+
+.map-pipeline-overlay-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(12px);
+  transition: transform 0.5s ease;
 }
 
-.pipeline-confirm-inner.visible {
-  opacity: 1;
+.map-pipeline-overlay.visible .map-pipeline-overlay-inner {
   transform: translateY(0);
 }
 
@@ -1290,7 +1290,7 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
 }
 
-.pipeline-confirm-inner.visible .pipeline-confirm-check {
+.map-pipeline-overlay.visible .pipeline-confirm-check {
   transform: scale(1);
 }
 
@@ -1309,6 +1309,17 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
 .pipeline-confirm-text strong {
   color: var(--black);
   font-weight: 600;
+}
+
+.pipeline-countdown {
+  font-size: 28px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--gray-300);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Map marker dots */
@@ -1344,6 +1355,31 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
 .map-marker.mid  { background: var(--gray-500); }
 .map-marker.low  { background: var(--gray-300); }
 
+/* Address label above featured building */
+.map-building-label {
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--green);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 10;
+}
+
+.map-building-label.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Ping ring animation */
 .map-marker-ping {
   position: absolute;
@@ -1369,6 +1405,46 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   100% { transform: scale(2.5); opacity: 0; }
 }
 
+/* Lock-on selection animation */
+.map-lock-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  border: 2.5px solid var(--green);
+  pointer-events: none;
+  opacity: 0;
+  animation: mapLockOn 1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes mapLockOn {
+  0%   { transform: scale(4); opacity: 0; }
+  20%  { opacity: 0.8; }
+  80%  { opacity: 0.5; }
+  100% { transform: scale(0.35); opacity: 0; }
+}
+
+.map-lock-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34,197,94,0.5) 0%, rgba(34,197,94,0) 70%);
+  pointer-events: none;
+  opacity: 0;
+  animation: mapLockFlash 0.7s ease-out 0.5s forwards;
+}
+
+@keyframes mapLockFlash {
+  0%   { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
@@ -1531,23 +1607,6 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
     padding: 5px 10px;
   }
 
-  .pipeline-confirm-section {
-    height: 120vh;
-  }
-
-  .pipeline-confirm-check {
-    width: 48px;
-    height: 48px;
-  }
-
-  .pipeline-confirm-check svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .pipeline-confirm-text {
-    font-size: 16px;
-  }
 }
 
 /* ========================================
@@ -1894,8 +1953,6 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-gl-wrap { height: 300px; }
   .map-scroll-runway { height: 200vh; }
 
-  .pipeline-confirm-section { height: 100vh; }
-
   /* Product */
   .capabilities { padding: 60px 24px; }
   .deep-section { padding: 48px 24px; gap: 32px; }
@@ -1954,24 +2011,6 @@ a.btn-secondary-lg { text-decoration: none; color: var(--black); display: inline
   .map-gl-wrap { height: 260px; }
   .map-scroll-runway { height: 180vh; }
   .map-property-grid { grid-template-columns: 1fr; }
-
-  .pipeline-confirm-section {
-    height: 80vh;
-  }
-
-  .pipeline-confirm-check {
-    width: 44px;
-    height: 44px;
-  }
-
-  .pipeline-confirm-check svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .pipeline-confirm-text {
-    font-size: 15px;
-  }
 
   .cta-inner h2 { font-size: 22px; }
   .quote-section p { font-size: 16px; }
