@@ -14,6 +14,16 @@ import ProductPage from './pages/ProductPage';
 import PricingPage from './pages/PricingPage';
 import LoginPage from './pages/LoginPage';
 import DocsPage from './pages/DocsPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import AppShell from './components/AppShell';
+import DashboardPage from './pages/app/DashboardPage';
+import PipelinePage from './pages/app/PipelinePage';
+import SellerDetailPage from './pages/app/SellerDetailPage';
+import CampaignsPage from './pages/app/CampaignsPage';
+import CampaignDetailPage from './pages/app/CampaignDetailPage';
+import AnalyticsPage from './pages/app/AnalyticsPage';
+import SettingsPage from './pages/app/SettingsPage';
+import MapPage from './pages/app/MapPage';
 
 const FEATURED_ID = 7;
 
@@ -121,6 +131,18 @@ export default function App() {
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/docs" element={<DocsPage />} />
+      <Route path="/app" element={<ProtectedRoute />}>
+        <Route element={<AppShell />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="pipeline" element={<PipelinePage />} />
+          <Route path="pipeline/:id" element={<SellerDetailPage />} />
+          <Route path="campaigns" element={<CampaignsPage />} />
+          <Route path="campaigns/:id" element={<CampaignDetailPage />} />
+          <Route path="map" element={<MapPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
+      </Route>
     </Routes>
   );
 }

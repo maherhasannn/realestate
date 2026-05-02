@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { sellerCoords } from '../data/sellers';
 
 const FEATURED_ID = 7;
@@ -73,7 +74,6 @@ export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }
   const markersRef = useRef([]);
   const labelMarkerRef = useRef(null);
   const heatmapAddedRef = useRef(false);
-  const keepaliveRef = useRef(null);
   const stateRef = useRef({
     lastProgress: -1,
     lastPhase: '',
@@ -88,7 +88,7 @@ export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }
     lastHeatmapOpacity: -1,
   });
 
-  const mapCoverUrl = `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/-118.48,34.055,10.8/960x480@2x?access_token=${MAPBOX_TOKEN}`;
+  const mapCoverUrl = '/map-cover.png';
 
   const triggerAddToPipeline = useCallback(() => {
     if (onAddToPipeline) onAddToPipeline();
@@ -344,6 +344,10 @@ export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }
       // Scroll hint
       if (progress < 0.20) {
         scrollHint.textContent = 'Scroll down \u2193';
+        scrollHint.classList.remove('lock-prompt');
+        scrollHint.classList.add('visible');
+      } else if (progress >= 0.30 && progress < 0.82) {
+        scrollHint.textContent = 'Keep scrolling \u2193';
         scrollHint.classList.remove('lock-prompt');
         scrollHint.classList.add('visible');
       } else {
@@ -607,17 +611,24 @@ export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }
       // Always read the freshest scroll position
       targetProgress = getScrollProgress();
 
-      // Lerp toward target (0.12 ≈ settles in ~300 ms)
+      // Lerp toward target — use a faster factor when the gap is large
+      // so fast scrollers can't outrun the animation sequence.
       const diff = targetProgress - smoothProgress;
-      if (Math.abs(diff) > 0.0005) {
-        smoothProgress += diff * (isMobile ? 0.22 : 0.12);
+      const absDiff = Math.abs(diff);
+      if (absDiff > 0.0003) {
+        const baseFactor = isMobile ? 0.14 : 0.07;
+        // Ramp the factor up toward 1.0 as the gap grows past 0.15
+        const factor = absDiff > 0.15
+          ? baseFactor + (1 - baseFactor) * Math.min(1, (absDiff - 0.15) / 0.35)
+          : baseFactor;
+        smoothProgress += diff * factor;
       } else {
         smoothProgress = targetProgress;
       }
 
       // Push update only when progress moved meaningfully
       const state = stateRef.current;
-      if (Math.abs(smoothProgress - state.lastProgress) > 0.0005) {
+      if (Math.abs(smoothProgress - state.lastProgress) > 0.0003) {
         state.lastProgress = smoothProgress;
         updateMapFromScroll(smoothProgress);
       }
@@ -643,7 +654,6 @@ export default function ScrollMap({ sellers, onAddToPipeline, onDashboardReady }
     return () => {
       window.removeEventListener('scroll', onScroll);
       if (rafId) cancelAnimationFrame(rafId);
-      if (keepaliveRef.current) clearInterval(keepaliveRef.current);
       const st = stateRef.current;
       if (st.overlayIntervalId) clearInterval(st.overlayIntervalId);
       if (st.overlayTimerId) clearTimeout(st.overlayTimerId);

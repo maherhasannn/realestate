@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Nav({ activePage }) {
-  const [scrolled, setScrolled] = useState(false);
+  const navRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 20);
+      if (!navRef.current) return;
+      navRef.current.classList.toggle('scrolled', window.scrollY > 20);
     }
     window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -27,7 +29,7 @@ export default function Nav({ activePage }) {
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   return (
-    <nav className={`nav${scrolled ? ' scrolled' : ''}${menuOpen ? ' menu-open' : ''}`}>
+    <nav ref={navRef} className={`nav${menuOpen ? ' menu-open' : ''}`}>
       <Link to="/" className="nav-logo" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="nav-logo-dot"></div>
         <span className="nav-logo-text">Signal</span>

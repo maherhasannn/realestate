@@ -1,10 +1,5 @@
 import { useRef, useEffect } from 'react';
-
-function fmt$(v) {
-  if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
-  if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
-  return '$' + v;
-}
+import { fmt$ } from '../../utils/format';
 
 function scoreColor(s) {
   return s >= 90 ? 'var(--green)' : s >= 85 ? 'var(--gray-500)' : 'var(--gray-400)';
